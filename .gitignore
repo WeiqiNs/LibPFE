@@ -1,3 +1,4 @@
+# Github cmake ignores.
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -9,3 +10,10 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
+
+# CLion ignores.
+.idea
+# CMake
+cmake-build-*/
+# File-based project format
+*.iws

@@ -1,62 +1,72 @@
 #include "field.h"
 
-int test_zp_zero() {
-    zp x, y;
-    zp_zero(x);
-    fp_zero(y);
-    return fp_cmp(x, y);
+int test_zp_zero(bn_st *N) {
+    struct zp x = zp_zero(N);
+    return zp_cmp_int(x, 0);
 }
 
-int test_zp_copy() {
-    zp x, y;
-    zp_from_int(x, 3);
-    zp_copy(y, x);
-    return fp_cmp_dig(y, 3);
+int test_zp_one(bn_st *N) {
+    struct zp x = zp_one(N);
+    return zp_cmp_int(x, 1);
 }
 
-int test_zp_from_int() {
-    zp x;
-    zp_from_int(x, 3);
-    return fp_cmp_dig(x, 3);
+int test_zp_copy(bn_st *N) {
+    struct zp x = zp_from_int(10, N);
+    struct zp y = zp_copy(x);
+    return zp_cmp(x, y);
 }
 
-int test_zp_add() {
-    zp x, y, r;
-    zp_from_int(x, 10);
-    zp_from_int(y, 20);
-    zp_add(r, x, y);
-    return fp_cmp_dig(r, 30);
+int test_zp_from_int(bn_st *N) {
+    struct zp x = zp_from_int(3, N);
+    return zp_cmp_int(x, 3);
 }
 
-int test_zp_multiply() {
-    zp x, y, r;
-    zp_from_int(x, 10);
-    zp_from_int(y, 20);
-    zp_multiply(r, x, y);
-    return fp_cmp_dig(r, 200);
+int test_zp_add(bn_st *N) {
+    struct zp x = zp_from_int(10, N);
+    struct zp y = zp_from_int(20, N);
+    struct zp z = zp_add(x, y);
+    return zp_cmp_int(z, 30);
 }
 
-int test_zp_inverse() {
-    zp x, xi, r;
-    rand_zp(x);
-    zp_inverse(xi, x);
-    zp_multiply(r, x, xi);
-    return fp_cmp_dig(r, 1);
+int test_zp_neg(bn_st *N) {
+    struct zp x = rand_zp(N);
+    struct zp y = zp_neg(x);
+    struct zp z = zp_add(x, y);
+    return zp_cmp_int(z, 0);
 }
 
+int test_zp_mul(bn_st *N) {
+    struct zp x = zp_from_int(10, N);
+    struct zp y = zp_from_int(20, N);
+    struct zp z = zp_mul(x, y);
+    return zp_cmp_int(z, 200);
+}
+
+int test_zp_inv(bn_st *N) {
+    struct zp x = rand_zp(N);
+    struct zp y = zp_inv(x);
+    struct zp z = zp_mul(x, y);
+    return zp_cmp_int(z, 1);
+}
 
 int main() {
     // Init core and setup.
     core_init();
     pc_param_set_any();
 
+    // Get order.
+    bn_t N;
+    pc_get_ord(N);
+
     // Perform tests.
-    if (test_zp_zero() != RLC_EQ) return 1;
-    if (test_zp_copy() != RLC_EQ) return 1;
-    if (test_zp_from_int() != RLC_EQ) return 1;
-    if (test_zp_add() != RLC_EQ) return 1;
-    if (test_zp_multiply() != RLC_EQ) return 1;
-    if (test_zp_inverse() != RLC_EQ) return 1;
+    if (test_zp_zero(N) != 1) return 1;
+    if (test_zp_one(N) != 1) return 1;
+    if (test_zp_copy(N) != 1) return 1;
+    if (test_zp_from_int(N) != 1) return 1;
+    if (test_zp_add(N) != 1) return 1;
+    if (test_zp_neg(N) != 1) return 1;
+    if (test_zp_mul(N) != 1) return 1;
+    if (test_zp_inv(N) != 1) return 1;
 
     return 0;
 }

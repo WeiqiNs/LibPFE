@@ -1,14 +1,16 @@
+# Include the header list.
 set(HEADER_LIST "${CMAKE_SOURCE_DIR}/include/")
 
+# Add all files to the library.
 add_library(ppann_lib field.c group.c vector.c matrix.c ${HEADER_LIST})
 
 # We need this directory, and users of our library will need it too
 target_include_directories(ppann_lib PUBLIC ../include)
 
-# This depends on (header only) boost
+# This depends on the relic library.
 target_link_libraries(ppann_lib PRIVATE ${RELIC_LIB})
 
-# IDEs should put the headers in a nice place
+# IDEs should put the headers in a nice place.
 source_group(
         TREE "${PROJECT_SOURCE_DIR}/include"
         PREFIX "Header Files"

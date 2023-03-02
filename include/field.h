@@ -3,20 +3,33 @@
 
 #include "relic/relic.h"
 
-typedef fp_t zp;
+struct zp {
+    bn_t point;
+    bn_t modular;
+};
 
-void rand_zp(zp x);
+struct zp new_zp();
 
-void zp_zero(zp x);
+struct zp rand_zp(bn_t modular);
 
-void zp_copy(zp x_copy, zp x);
+struct zp zp_zero(bn_t modular);
 
-void zp_from_int(zp x, int x_int);
+struct zp zp_one(bn_t modular);
 
-void zp_add(zp r, zp x, zp y);
+struct zp zp_copy(struct zp x);
 
-void zp_multiply(zp p, zp x, zp y);
+struct zp zp_from_int(int x, bn_t modular);
 
-void zp_inverse(zp xi, zp x);
+struct zp zp_add(struct zp x, struct zp y);
+
+struct zp zp_neg(struct zp x);
+
+struct zp zp_mul(struct zp x, struct zp y);
+
+struct zp zp_inv(struct zp x);
+
+int zp_cmp(struct zp x, struct zp y);
+
+int zp_cmp_int(struct zp x, int y);
 
 #endif //PPANN_FIELD_H

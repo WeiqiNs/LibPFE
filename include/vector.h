@@ -4,18 +4,18 @@
 #include "field.h"
 #include "group.h"
 
-typedef zp *zp_vec;
+typedef struct zp *zp_vec;
 typedef g *g_vec;
 
-void vector_zp_from_int(zp_vec x, int *int_vec, int length);
+zp_vec vector_zp_from_int(const int *int_vec, int size, bn_t modular);
 
-void vector_zp_rand(zp_vec x, int length);
+zp_vec vector_zp_rand(int size, bn_t modular);
 
-void vector_merge(zp_vec r, zp_vec a, zp_vec b, int size_a, int size_b);
+zp_vec vector_merge(zp_vec a, zp_vec b, int size_a, int size_b);
 
-void vector_add(zp_vec r, zp_vec a, zp_vec b, int size);
+zp_vec vector_add(zp_vec a, zp_vec b, int size);
 
-void vector_raise(g base, zp_vec x, g_vec gx, int size);
+g_vec vector_raise(g base, zp_vec x, int size);
 
 void inner_product(gt r, g_vec a, g_vec b, int size);
 
