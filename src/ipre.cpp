@@ -1,30 +1,7 @@
-#include "vector.h"
-#include "matrix.h"
+#include "ipre.h"
 
-const int B_SIZE = 6;
-
-struct key {
-    zp_mat A;
-    zp_mat B;
-    zp_mat Bi;
-    g base;
-    gt t_base;
-    bn_t modular;
-};
-
-struct ct {
-    g_vec ctx;
-    g_vec ctk;
-    g_vec ctc;
-};
-
-void initialize_relic() {
-    core_init();
-    pc_param_set_any();
-}
-
-struct key setup(int size) {
-    struct key key;
+key setup(int size) {
+    key key{};
     pc_get_ord(key.modular);
     gen(key.base);
     bp_map(key.base, key.base, key.t_base);
@@ -34,9 +11,9 @@ struct key setup(int size) {
     return key;
 }
 
-struct ct enc(struct key key, const int *message, int size) {
+ct enc(key key, const int *message, int size) {
     // Declare the returned ciphertext and convert message to zp.
-    struct ct ct;
+    ct ct{};
     zp_vec x = vector_zp_from_int(message, size, key.modular);
 
     // Helper values.
@@ -71,7 +48,7 @@ struct ct enc(struct key key, const int *message, int size) {
     return ct;
 }
 
-void eval(struct key key, struct ct x, struct ct y, int size) {
+int eval(key key, ct x, ct y, int size, int bound) {
     // Decrypt components.
     gt xy, ct;
     inner_product(xy, x.ctx, y.ctx, size);
@@ -81,24 +58,15 @@ void eval(struct key key, struct ct x, struct ct y, int size) {
     gt_inv(ct, ct);
     gt_mul(xy, xy, ct);
 
-    // Check correctness.
-    gt desired_output;
-    gt_exp_dig(desired_output, key.t_base, 65);
-    if (gt_cmp(desired_output, xy) == RLC_EQ) printf("Magic happened");
-}
+    // Get a target group element holder.
+    gt output;
 
-int main() {
-    // Initialize relic.
-    initialize_relic();
-    // Set x, y vectors.
-    int x[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 2};
-    int y[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    // Initialize the scheme.
-    struct key key = setup(10);
-    // Encrypt the messages.
-    struct ct ct_x = enc(key, x, 10);
-    struct ct ct_y = enc(key, y, 10);
-    // Evaluate the two ciphertexts.
-    eval(key, ct_x, ct_y, 10);
+    // Iterate through a loop to find correct answer.
+    for (int i = 1; i <= bound; i++) {
+        gt_exp_dig(output, key.t_base, i);
+        if (gt_cmp(output, xy) == RLC_EQ) return i;
+    }
+
+    // Otherwise return 0 as the output.
     return 0;
 }

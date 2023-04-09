@@ -6,15 +6,15 @@ project(
         PPANN
         VERSION 0.1
         DESCRIPTION "This project implements the inner product revealing encryption."
-        LANGUAGES C
+        LANGUAGES CXX
 )
 
 # Set standards and include tests.
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    set(CMAKE_C_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 17)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
     include(CTest)
-endif()
+endif ()
 
 # Find the relic library.
 find_library(RELIC_LIB relic)

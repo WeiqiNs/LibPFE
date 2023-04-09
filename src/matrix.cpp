@@ -2,7 +2,7 @@
 
 zp_mat matrix_zp_from_int(const int *int_mat, int row, int col, bn_st *modular) {
     zp_mat x;
-    x = (zp_mat) malloc(sizeof(struct zp) * row * col);
+    x = (zp_mat) malloc(sizeof(zp) * row * col);
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col; j++) {
             x[i * col + j] = zp_from_int(int_mat[i * col + j], modular);
@@ -13,7 +13,7 @@ zp_mat matrix_zp_from_int(const int *int_mat, int row, int col, bn_st *modular) 
 
 zp_mat matrix_zp_rand(int row, int col, bn_st *modular) {
     zp_mat x;
-    x = (zp_mat) malloc(sizeof(struct zp) * row * col);
+    x = (zp_mat) malloc(sizeof(zp) * row * col);
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col; j++) {
             x[i * col + j] = rand_zp(modular);
@@ -24,7 +24,7 @@ zp_mat matrix_zp_rand(int row, int col, bn_st *modular) {
 
 zp_mat matrix_identity(int size, bn_st *modular) {
     zp_mat x;
-    x = (zp_mat) malloc(sizeof(struct zp) * size * size);
+    x = (zp_mat) malloc(sizeof(zp) * size * size);
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             if (i == j) x[i * size + j] = zp_one(modular);
@@ -46,7 +46,7 @@ int matrix_is_identity(zp_mat x, int size) {
 
 zp_mat matrix_transpose(zp_mat x, int row, int col) {
     zp_mat xt;
-    xt = (zp_mat) malloc(sizeof(struct zp) * row * col);
+    xt = (zp_mat) malloc(sizeof(zp) * row * col);
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col; j++) {
             xt[j * row + i] = zp_copy(x[i * col + j]);
@@ -57,7 +57,7 @@ zp_mat matrix_transpose(zp_mat x, int row, int col) {
 
 zp_mat matrix_merge(zp_mat x, zp_mat y, int row, int col_x, int col_y) {
     zp_mat xy;
-    xy = (zp_mat) malloc(sizeof(struct zp) * row * (col_x + col_y));
+    xy = (zp_mat) malloc(sizeof(zp) * row * (col_x + col_y));
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col_x; j++) {
             xy[i * (col_x + col_y) + j] = zp_copy(x[i * col_x + j]);
@@ -70,7 +70,7 @@ zp_mat matrix_merge(zp_mat x, zp_mat y, int row, int col_x, int col_y) {
 }
 
 zp_mat matrix_multiply(zp_mat x, zp_mat y, int row_x, int row_y, int col_y, bn_st *modular) {
-    zp_mat xy = (zp_mat) malloc(sizeof(struct zp) * row_x * col_y);
+    auto xy = (zp_mat) malloc(sizeof(zp) * row_x * col_y);
 
     for (int i = 0; i < row_x; i++) {
         for (int j = 0; j < col_y; j++) {
@@ -89,7 +89,8 @@ zp_mat matrix_inverse(zp_mat x, int size, bn_st *modular) {
     zp_mat row_echelon = matrix_merge(x, identity, size, size, size);
 
     // Declare temp value.
-    struct zp temp_multiplier, temp_neg;
+    zp temp_multiplier;
+    zp temp_neg;
 
     // Bottom left half to all zeros.
     for (int i = 0; i < size; i++) {
@@ -128,7 +129,7 @@ zp_mat matrix_inverse(zp_mat x, int size, bn_st *modular) {
 
     // Copy over the output.
     zp_mat xi;
-    xi = (zp_mat) malloc(sizeof(struct zp) * size * size);
+    xi = (zp_mat) malloc(sizeof(zp) * size * size);
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             xi[i * size + j] = zp_copy(row_echelon[i * 2 * size + size + j]);

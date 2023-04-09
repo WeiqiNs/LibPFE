@@ -4,7 +4,7 @@
 #include "field.h"
 #include "group.h"
 
-typedef struct zp *zp_mat;
+typedef zp *zp_mat;
 
 zp_mat matrix_zp_from_int(const int *int_mat, int row, int col, bn_t modular);
 

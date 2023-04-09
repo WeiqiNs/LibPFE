@@ -8,9 +8,9 @@ typedef gt_t gt;
 
 void gen(g x);
 
-void g_mul(g r, g x, struct zp y);
+void g_mul(g r, g x, zp y);
 
-void gt_raise(gt r, gt x, struct zp y);
+void gt_raise(gt r, gt x, zp y);
 
 void bp_map(g a, g b, gt r);
 
