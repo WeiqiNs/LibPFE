@@ -4,7 +4,7 @@
 #include "field.h"
 #include "group.h"
 
-typedef zp *zp_vec;
+typedef ZP *zp_vec;
 typedef g *g_vec;
 
 zp_vec vector_zp_from_int(const int *int_vec, int size, bn_t modular);

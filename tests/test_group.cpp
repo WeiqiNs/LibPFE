@@ -8,8 +8,8 @@ int test_generator() {
 
 int test_all(bn_st *N) {
     // Set integers.
-    zp m = zp_from_int(5, N);
-    zp n = zp_from_int(25, N);
+    ZP m = zp_from_int(5, N);
+    ZP n = zp_from_int(25, N);
 
     // Declare variables.
     g a, b;

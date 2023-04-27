@@ -1,7 +1,7 @@
 #include "ipre.h"
 
-key setup(int size) {
-    key key{};
+Key setup(int size) {
+    Key key{};
     pc_get_ord(key.modular);
     gen(key.base);
     bp_map(key.base, key.base, key.t_base);
@@ -11,9 +11,9 @@ key setup(int size) {
     return key;
 }
 
-ct enc(key key, const int *message, int size) {
-    // Declare the returned ciphertext and convert message to zp.
-    ct ct{};
+Ct enc(Key key, const int *message, int size) {
+    // Declare the returned ciphertext and convert message to ZP.
+    Ct ct{};
     zp_vec x = vector_zp_from_int(message, size, key.modular);
 
     // Helper values.
@@ -27,7 +27,7 @@ ct enc(key key, const int *message, int size) {
     zp_vec sAx = vector_add(sA, x, size);
     ct.ctx = vector_raise(key.base, sAx, size);
 
-    // We compute the function hiding inner product encryption key.
+    // We compute the function hiding inner product encryption Key.
     zp_mat AT = matrix_transpose(key.A, 2, size);
     zp_vec xAT = matrix_multiply(x, AT, 1, size, 2, key.modular);
     zp_vec xATs = vector_merge(xAT, s, 2, 2);
@@ -48,7 +48,7 @@ ct enc(key key, const int *message, int size) {
     return ct;
 }
 
-int eval(key key, ct x, ct y, int size, int bound) {
+int eval(Key key, Ct x, Ct y, int size, int bound) {
     // Decrypt components.
     gt xy, ct;
     inner_product(xy, x.ctx, y.ctx, size);

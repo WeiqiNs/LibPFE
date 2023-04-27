@@ -41,7 +41,7 @@ int test_multiply_vector(bn_st *N) {
 }
 
 int test_inverse(bn_st *N) {
-    int size = 100;
+    int size = 128;
     zp_mat x = matrix_zp_rand(size, size, N);
     zp_mat xi = matrix_inverse(x, size, N);
     zp_mat r = matrix_multiply(x, xi, size, size, size, N);

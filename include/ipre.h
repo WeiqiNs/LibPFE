@@ -6,7 +6,7 @@
 
 const int B_SIZE = 6;
 
-struct key {
+struct Key {
     zp_mat A;
     zp_mat B;
     zp_mat Bi;
@@ -15,16 +15,16 @@ struct key {
     bn_t modular;
 };
 
-struct ct {
+struct Ct {
     g_vec ctx;
     g_vec ctk;
     g_vec ctc;
 };
 
-key setup(int size);
+Key setup(int size);
 
-ct enc(key key, const int *message, int size);
+Ct enc(Key key, const int *message, int size);
 
-int eval(key key, ct x, ct y, int size, int bound);
+int eval(Key key, Ct x, Ct y, int size, int bound);
 
 #endif //PPANN_IPRE_H

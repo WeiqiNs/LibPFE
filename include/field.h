@@ -7,31 +7,31 @@ extern "C" {
 #include "relic/relic.h"
 }
 
-struct zp {
+struct ZP {
     bn_t point{};
     bn_t modular{};
 };
 
-zp rand_zp(bn_t modular);
+ZP rand_zp(bn_t modular);
 
-zp zp_zero(bn_t modular);
+ZP zp_zero(bn_t modular);
 
-zp zp_one(bn_t modular);
+ZP zp_one(bn_t modular);
 
-zp zp_copy(zp x);
+ZP zp_copy(ZP x);
 
-zp zp_from_int(int x, bn_t modular);
+ZP zp_from_int(int x, bn_t modular);
 
-zp zp_add(zp x, zp y);
+ZP zp_add(ZP x, ZP y);
 
-zp zp_neg(zp x);
+ZP zp_neg(ZP x);
 
-zp zp_mul(zp x, zp y);
+ZP zp_mul(ZP x, ZP y);
 
-zp zp_inv(zp x);
+ZP zp_inv(ZP x);
 
-int zp_cmp(zp x, zp y);
+int zp_cmp(ZP x, ZP y);
 
-int zp_cmp_int(zp x, int y);
+int zp_cmp_int(ZP x, int y);
 
 #endif //PPANN_FIELD_H
