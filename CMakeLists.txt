@@ -17,7 +17,8 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 endif ()
 
 # Find the relic library.
-find_library(RELIC_LIB relic)
+find_library(RELIC_LIB_SYM relic_sym)
+find_library(RELIC_LIB_ASYM relic_asym)
 
 # Add desired subdirectories.
 add_subdirectory(src)

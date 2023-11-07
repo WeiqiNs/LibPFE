@@ -4,7 +4,7 @@
 #include <gmp.h>
 
 extern "C" {
-#include "relic/relic.h"
+#include "relic_sym/relic.h"
 }
 
 struct ZP {

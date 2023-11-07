@@ -8,7 +8,8 @@ add_library(ppann_lib field.cpp group.cpp vector.cpp matrix.cpp ipre.cpp hnsw.cp
 target_include_directories(ppann_lib PUBLIC ../include)
 
 # This depends on the relic library.
-target_link_libraries(ppann_lib PRIVATE ${RELIC_LIB})
+target_link_libraries(ppann_lib PRIVATE ${RELIC_LIB_SYM})
+target_link_libraries(ppann_lib PRIVATE ${RELIC_LIB_ASYM})
 
 # IDEs should put the headers in a nice place.
 source_group(
