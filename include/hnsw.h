@@ -1,5 +1,4 @@
-#ifndef PPANN_HNSW_H
-#define PPANN_HNSW_H
+#pragma once
 
 #include <set>
 #include <random>
@@ -7,7 +6,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
-#include "ipre.h"
+#include "sym_ipre.hpp"
 
 using namespace std;
 
@@ -61,5 +60,3 @@ struct HNSWGraph {
 
     vector<int> searchLayer(Item &q, int ep, int ef, int lc);
 };
-
-#endif //PPANN_HNSW_H

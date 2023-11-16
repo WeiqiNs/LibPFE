@@ -1,5 +1,5 @@
 # Set cmake version.
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.22)
 
 # Project name and language.
 project(

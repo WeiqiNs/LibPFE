@@ -1,4 +1,7 @@
-FROM ubuntu:latest
+FROM ubuntu:23.10
+
+# Set the relic version number in case we may want to update it.
+ENV VERSION=0.6.0
 
 # Update libraries.
 RUN apt update && apt upgrade -y
@@ -7,41 +10,33 @@ RUN apt install -y wget unzip build-essential libgmp-dev libssl-dev cmake
 # Clean up.
 RUN apt clean
 
-# Work in the home directory.
-WORKDIR "/home"
-
 # Download library and unzip.
-RUN wget https://github.com/relic-toolkit/relic/archive/refs/tags/0.6.0.zip
-RUN unzip 0.6.0.zip
+RUN wget -P /home https://github.com/relic-toolkit/relic/archive/refs/tags/$VERSION.tar.gz &&  \
+    tar -xzf /home/0.6.0.tar.gz -C /home
 
-# Library installation, first install the symmetric curve.
-WORKDIR "/home/relic-0.6.0"
-RUN mkdir -p relic-target-sym
-WORKDIR "/home/relic-0.6.0/relic-target-sym"
+# Library installation; first install the symmetric curve.
+RUN mkdir -p /home/relic-$VERSION/relic-target-sym
+WORKDIR "/home/relic-$VERSION/relic-target-sym"
 RUN cmake -DLABEL=sym ..
 RUN ../preset/gmp-pbc-ss1536.sh ../
-RUN make -w
+RUN make
 RUN make install
 
-# Library installation, install the asymmetric curve.
-WORKDIR "/home/relic-0.6.0"
-RUN mkdir -p relic-target-asym
-WORKDIR "/home/relic-0.6.0/relic-target-asym"
+# Library installation; now install the asymmetric curve.
+RUN mkdir -p /home/relic-$VERSION/relic-target-asym
+WORKDIR "/home/relic-$VERSION/relic-target-asym"
 RUN cmake -DLABEL=asym ..
 RUN ../preset/gmp-pbc-bn254.sh ../
-RUN make -w
+RUN make
 RUN make install
 
 # Copy the files over to working directory.
-WORKDIR "/home"
-RUN mkdir app
-COPY . /home/app
+RUN mkdir -p /home/project/build
+COPY . /home/project
 
 # Build the project.
-WORKDIR "/home/app"
-RUN mkdir build
-WORKDIR "/home/app/build"
-RUN cmake /home/app
+WORKDIR "/home/project/build"
+RUN cmake /home/project
 RUN make
 
 # Execute the test.
