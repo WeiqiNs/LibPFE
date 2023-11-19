@@ -4,27 +4,64 @@
 #include "sym_matrix.hpp"
 
 namespace sym::ipre {
-    const int B_SIZE = 4;
+    // Struct for the public parameters.
+    struct Pp {
+        int size;
+        int bound;
+        sym::g g_base;
+        sym::gt gt_base;
+        sym::point mod;
+    };
 
-    // Struct for secret key.
+    // Struct for the secret key.
     struct Sk {
-        zpMat A;
-        zpMat B;
-        zpMat Bi;
-        g g_base;
-        gt gt_base;
-        point mod;
+        sym::zpMat A;
+        sym::zpMat B;
+        sym::zpMat Bi;
     };
 
+    // Struct for the ciphertext.
     struct Ct {
-        gVec ctx;
-        gVec ctk;
-        gVec ctc;
+        sym::gVec ctx;
+        sym::gVec ctl;
+        sym::gVec ctr;
     };
 
-    Sk setup(point secpar, int size);
+    /**
+     * Generate public parameters which contains the following.
+     *  - size: message length.
+     *  - bound: inner product result bound.
+     *  - g_base: a generator in group G.
+     *  - gt_base: the result of e(g_base, g_base).
+     *  - mod: the size of the field.
+     * @param size - message length.
+     * @param bound - inner product result bound.
+     * @return the generated public parameters.
+     */
+    Pp ppgen(int size, int bound);
 
-    Ct enc(Sk sk, const int *message, int size);
+    /**
+     * Generate the secret key for the scheme.
+     * @param pp - the public parameters.
+     * @return the generated secret key.
+     */
+    Sk setup(Pp pp);
 
-    int eval(Sk sk, Ct x, Ct y, int size, int bound);
+    /**
+     * Encrypt a message vector.
+     * @param pp - the public parameters.
+     * @param sk - the secret key.
+     * @param message - the input message vector.
+     * @return the ciphertext.
+     */
+    Ct enc(Pp pp, Sk sk, const int *message);
+
+    /**
+     * Compute inner product of two messages using their ciphertexts.
+     * @param pp - the public parameters.
+     * @param x - a ciphertext.
+     * @param y - a ciphertext.
+     * @return the integer result of the inner product.
+     */
+    int eval(Pp pp, Ct x, Ct y);
 }

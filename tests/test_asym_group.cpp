@@ -12,6 +12,28 @@ int test_g2_generator() {
     return g2_is_valid(x) == 1;
 }
 
+int test_gt_all() {
+    // Declare variables.
+    asym::g1 a;
+    asym::g2 b;
+    asym::gt x, y, z;
+
+    // Set generators and get a Gt element.
+    asym::g1_gen(a);
+    asym::g2_gen(b);
+    asym::bp_map(x, a, b);
+
+    // Get a new gt element and compute its inverse.
+    asym::gt_raise_int(y, x, 100);
+    asym::gt_inverse(z, y);
+
+    // Multiply them together and find x^0.
+    asym::gt_multiply(y, y, z);
+    asym::gt_get_unity(x);
+
+    return asym::gt_compare(x, y);
+}
+
 int test_all(asym::point N) {
     // Set integers.
     asym::Zp a = asym::zp_from_int(5, N);
@@ -36,7 +58,7 @@ int test_all(asym::point N) {
     asym::gt_raise(z, x, c);
     asym::bp_map(y, k, n);
 
-    return gt_cmp(z, y) == RLC_EQ;
+    return asym::gt_compare(y, z);
 }
 
 int main() {
@@ -47,6 +69,7 @@ int main() {
     // Perform tests.
     if (test_g1_generator() != 1) return 1;
     if (test_g2_generator() != 1) return 1;
+    if (test_gt_all() != 1) return 1;
     if (test_all(N) != 1) return 1;
 
     return 0;

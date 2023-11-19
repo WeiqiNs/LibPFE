@@ -1,22 +1,20 @@
 #pragma once
 
-#include "asym_vector.hpp"
-#include "asym_matrix.hpp"
+#include "asym_ipfe.hpp"
 
-namespace asym::ipfe {
+namespace asym::ipfe::kim {
     // Struct for the public parameters.
     struct Pp {
         int size;
         int bound;
         asym::g1 g1_base;
         asym::g2 g2_base;
-        asym::gt gt_base;
         asym::point mod;
     };
 
-    // Struct for the secret key.
+    // We define a new struct for the secret key to include determinant value.
     struct Sk {
-        asym::zpMat A;
+        asym::Zp det;
         asym::zpMat B;
         asym::zpMat Bi;
     };
@@ -24,13 +22,13 @@ namespace asym::ipfe {
     // Struct for the derived functional key.
     struct Key {
         asym::g1Vec ct;
-        asym::g1Vec ctl;
+        asym::g1 ctl;
     };
 
     // Struct for the ciphertext.
     struct Ct {
         asym::g2Vec ct;
-        asym::g2Vec ctr;
+        asym::g2 ctr;
     };
 
     /**
@@ -39,7 +37,6 @@ namespace asym::ipfe {
      *  - bound: inner product result bound.
      *  - g1_base: a generator in group G1.
      *  - g2_base: a generator in group G2.
-     *  - gt_base: the result of e(g_base, g_base).
      *  - mod: the size of the field.
      * @param size - message length.
      * @param bound - inner product result bound.

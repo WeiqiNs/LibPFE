@@ -11,7 +11,7 @@ int test_merge_vector(asym::point N) {
     int int_vec_y[3] = {11, 22, 33};
     asym::zpVec x = asym::vector_zp_from_int(int_vec_x, 3, N);
     asym::zpVec y = asym::vector_zp_from_int(int_vec_y, 3, N);
-    asym::zpVec z = asym::vector_merge(x, y, 3, 3);
+    asym::zpVec z = asym::vector_join(x, y, 3, 3);
     return asym::zp_cmp_int(z[5], 33);
 }
 
@@ -49,7 +49,7 @@ int test_inner_product(asym::point N) {
     asym::bp_map(b, g1_gen, g2_gen);
     asym::gt_raise(b, b, z);
 
-    return gt_cmp(b, r) == RLC_EQ;
+    return asym::gt_compare(b, r);
 }
 
 int main() {

@@ -1,6 +1,6 @@
 #include "asym_init.hpp"
 
-void asym::init_get_order(point N) {
+void asym::init_get_order(asym::point N) {
     // Initiate relic.
     core_init();
     pc_param_set_any();
