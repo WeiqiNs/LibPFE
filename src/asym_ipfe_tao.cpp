@@ -1,21 +1,26 @@
 #include "asym_ipfe_tao.hpp"
 
-asym::ipfe::tao::Pp asym::ipfe::tao::ppgen(int size, int bound) {
+asym::ipfe::tao::Pp asym::ipfe::tao::ppgen(bool pre, int size, int bound) {
     asym::ipfe::tao::Pp pp{};
+    pp.pre = pre;
     pp.size = size;
     pp.bound = bound;
-    pp.b_size = size * 2 + 5;
+    pp.c_size = size * 2 + 5;
     asym::init_get_order(pp.mod);
     asym::g1_gen(pp.g1_base);
     asym::g2_gen(pp.g2_base);
     asym::bp_map(pp.gt_base, pp.g1_base, pp.g2_base);
+    if (pre) {
+        pp.g1_table = asym::get_g1_pre_table(pp.g1_base);
+        pp.g2_table = asym::get_g2_pre_table(pp.g2_base);
+    }
     return pp;
 }
 
 asym::ipfe::tao::Sk asym::ipfe::tao::setup(asym::ipfe::tao::Pp pp) {
     asym::ipfe::tao::Sk sk{};
-    sk.B = asym::matrix_zp_rand(pp.b_size, pp.b_size, pp.mod);
-    sk.Bi = asym::matrix_transpose(asym::matrix_inverse(sk.B, pp.b_size, pp.mod), pp.b_size, pp.b_size);
+    sk.B = asym::matrix_zp_rand(pp.c_size, pp.c_size, pp.mod);
+    sk.Bi = asym::matrix_transpose(asym::matrix_inverse(sk.B, pp.c_size, pp.mod), pp.c_size, pp.c_size);
     return sk;
 }
 
@@ -41,8 +46,9 @@ asym::ipfe::tao::Key asym::ipfe::tao::keyGen(asym::ipfe::tao::Pp pp, asym::ipfe:
     y = asym::vector_join(y, zero_vec, pp.size * 2 + 4, 1);
 
     // Compute g1^yB.
-    asym::zpMat yB = asym::matrix_multiply(y, sk.B, 1, pp.b_size, pp.b_size, pp.mod);
-    key.ct = asym::vector_raise_g1(pp.g1_base, yB, pp.b_size);
+    asym::zpMat yB = asym::matrix_multiply(y, sk.B, 1, pp.c_size, pp.c_size, pp.mod);
+    if (pp.pre) key.ct = asym::vector_raise_g1_with_table(pp.g1_table, yB, pp.c_size);
+    else key.ct = asym::vector_raise_g1(pp.g1_base, yB, pp.c_size);
 
     return key;
 }
@@ -71,8 +77,9 @@ asym::ipfe::tao::Ct asym::ipfe::tao::enc(asym::ipfe::tao::Pp pp, asym::ipfe::tao
     x = asym::vector_join(x, zero_vec, pp.size * 2 + 4, 1);
 
     // Compute g2^xBi.
-    asym::zpMat xBi = asym::matrix_multiply(x, sk.Bi, 1, pp.b_size, pp.b_size, pp.mod);
-    ct.ct = asym::vector_raise_g2(pp.g2_base, xBi, pp.b_size);
+    asym::zpMat xBi = asym::matrix_multiply(x, sk.Bi, 1, pp.c_size, pp.c_size, pp.mod);
+    if (pp.pre) ct.ct = asym::vector_raise_g2_with_table(pp.g2_table, xBi, pp.c_size);
+    else ct.ct = asym::vector_raise_g2(pp.g2_base, xBi, pp.c_size);
 
     return ct;
 }
@@ -80,7 +87,7 @@ asym::ipfe::tao::Ct asym::ipfe::tao::enc(asym::ipfe::tao::Pp pp, asym::ipfe::tao
 int asym::ipfe::tao::dec(asym::ipfe::tao::Pp pp, asym::ipfe::tao::Key y, asym::ipfe::tao::Ct x) {
     // Decrypt components.
     asym::gt xy;
-    asym::inner_product(xy, y.ct, x.ct, pp.b_size);
+    asym::inner_product(xy, y.ct, x.ct, pp.c_size);
 
     // Get a target group element holder.
     asym::gt output;

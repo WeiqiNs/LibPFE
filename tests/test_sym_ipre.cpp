@@ -6,7 +6,7 @@ int test_scheme() {
     int y[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 100};
 
     // Initialize the scheme.
-    sym::ipre::Pp pp = sym::ipre::ppgen(10, 150);
+    sym::ipre::Pp pp = sym::ipre::ppgen(true, 10, 150);
     sym::ipre::Sk sk = sym::ipre::setup(pp);
     // Encrypt the messages.
     sym::ipre::Ct ct_x = sym::ipre::enc(pp, sk, x);

@@ -5,11 +5,14 @@
 namespace asym::ipfe::kim {
     // Struct for the public parameters.
     struct Pp {
+        bool pre;
         int size;
         int bound;
         asym::g1 g1_base;
         asym::g2 g2_base;
         asym::point mod;
+        asym::g1Vec g1_table;
+        asym::g2Vec g2_table;
     };
 
     // We define a new struct for the secret key to include determinant value.
@@ -33,16 +36,19 @@ namespace asym::ipfe::kim {
 
     /**
      * Generate public parameters which contains the following.
+     *  - pre: a boolean value to indicate whether fast mul in G is used.
      *  - size: message length.
      *  - bound: inner product result bound.
      *  - g1_base: a generator in group G1.
      *  - g2_base: a generator in group G2.
      *  - mod: the size of the field.
+     *  - g1_table: a pre-computed table, which maybe empty.
+     *  - g2_table: a pre-computed table, which maybe empty.
      * @param size - message length.
      * @param bound - inner product result bound.
      * @return the generated public parameters.
      */
-    Pp ppgen(int size, int bound);
+    Pp ppgen(bool pre, int size, int bound);
 
     /**
      * Generate the secret key for the scheme.

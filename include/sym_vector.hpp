@@ -8,6 +8,13 @@ namespace sym {
     using gVec = g *;
 
     /**
+     * Build a pre-computation table for faster multiplication in G.
+     * @param base - an element in G.
+     * @return a vector of pre computed elements.
+     */
+    gVec get_g_pre_table(g base);
+
+    /**
      * Generate a vector of Zp elements from a vector of int.
      * @param int_vec - a vector of integers.
      * @param size - the length of the input vector.
@@ -51,6 +58,15 @@ namespace sym {
      * @return a vector of G elements.
      */
     gVec vector_raise(g base, zpVec x, int size);
+
+    /**
+     * Raise an element in G to a vector with the fast pre-computation table.
+     * @param table - a pre-computed table with values raised from desired base.
+     * @param x - a vector of Zp elements.
+     * @param size - the size of input vector x.
+     * @return a vector of G elements.
+     */
+    gVec vector_raise_with_table(gVec table, zpVec x, int size);
 
     /**
      * Compute e(a, b) where a, b are vectors with elements in G, and e is the bilinear map.

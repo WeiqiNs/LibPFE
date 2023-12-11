@@ -5,7 +5,7 @@ int test_scheme() {
     int x[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     int y[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 100};
     // Initialize the scheme.
-    asym::ipfe::Pp pp = asym::ipfe::ppgen(10, 150);
+    asym::ipfe::Pp pp = asym::ipfe::ppgen(true, 10, 150);
     asym::ipfe::Sk sk = asym::ipfe::setup(pp);
     // Encrypt the messages.
     asym::ipfe::Key key_y = asym::ipfe::keyGen(pp, sk, y);

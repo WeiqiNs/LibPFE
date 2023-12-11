@@ -9,6 +9,20 @@ namespace asym {
     using g2Vec = g2 *;
 
     /**
+     * Build a pre-computation table for faster multiplication in G1.
+     * @param base - an element in G1.
+     * @return a vector of pre computed elements.
+     */
+    g1Vec get_g1_pre_table(g1 base);
+
+    /**
+     * Build a pre-computation table for faster multiplication in G2.
+     * @param base - an element in G2.
+     * @return a vector of pre computed elements.
+     */
+    g2Vec get_g2_pre_table(g2 base);
+
+    /**
      * Generate a vector of Zp elements from a vector of int.
      * @param int_vec - a vector of integers.
      * @param size - the length of the input vector.
@@ -54,6 +68,15 @@ namespace asym {
     g1Vec vector_raise_g1(g1 base, zpVec x, int size);
 
     /**
+     * Raise an element in G1 to a vector and obtain a vector in G1.
+     * @param table - a pre-computed table with values raised from desired base in G1.
+     * @param x - a vector of Zp elements.
+     * @param size - the size of input vector x.
+     * @return a vector of G1 elements.
+     */
+    g1Vec vector_raise_g1_with_table(g1Vec table, zpVec x, int size);
+
+    /**
      * Raise an element in G2 to a vector and obtain a vector in G2.
      * @param base - an element in G2.
      * @param x - a vector of Zp elements.
@@ -61,6 +84,15 @@ namespace asym {
      * @return a vector of G2 elements.
      */
     g2Vec vector_raise_g2(g2 base, zpVec x, int size);
+
+    /**
+     * Raise an element in G2 to a vector and obtain a vector in G2.
+     * @param table - a pre-computed table with values raised from desired base in G2.
+     * @param x - a vector of Zp elements.
+     * @param size - the size of input vector x.
+     * @return a vector of G2 elements.
+     */
+    g2Vec vector_raise_g2_with_table(g2Vec table, zpVec x, int size);
 
     /**
      * Compute e(a, b) where a, b are vectors with elements in G1 and G2 respectively, and e is the bilinear map.

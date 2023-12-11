@@ -1,18 +1,19 @@
 FROM ubuntu:23.10
 
 # Set the relic version number in case we may want to update it.
-ENV VERSION=0.6.0
+ENV VERSION=main
 
 # Update libraries.
 RUN apt update && apt upgrade -y
 # Install needed libraries.
-RUN apt install -y wget unzip build-essential libgmp-dev libssl-dev cmake
+RUN apt install -y wget build-essential libgmp-dev libssl-dev cmake
 # Clean up.
 RUN apt clean
 
 # Download library and unzip.
-RUN wget -P /home https://github.com/relic-toolkit/relic/archive/refs/tags/$VERSION.tar.gz &&  \
-    tar -xzf /home/0.6.0.tar.gz -C /home
+
+RUN wget -P /home https://github.com/relic-toolkit/relic/archive/refs/heads/$VERSION.tar.gz &&  \
+    tar -xzf /home/$VERSION.tar.gz -C /home
 
 # Library installation; first install the symmetric curve.
 RUN mkdir -p /home/relic-$VERSION/relic-target-sym

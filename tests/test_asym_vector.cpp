@@ -52,6 +52,43 @@ int test_inner_product(asym::point N) {
     return asym::gt_compare(b, r);
 }
 
+int test_pre_comp_g1(asym::point N) {
+    // Set vectors.
+    int int_vec[5] = {1, 22, 333, 4444, 55555};
+    asym::zpVec x = asym::vector_zp_from_int(int_vec, 5, N);
+
+    // Set g_base.
+    asym::g1 base;
+    asym::g1_gen(base);
+
+    // Get the precomputed table.
+    asym::g1Vec gx, gy, table;
+    table = asym::get_g1_pre_table(base);
+    gx = asym::vector_raise_g1(base, x, 5);
+    gy = asym::vector_raise_g1_with_table(table, x, 5);
+
+    return g1_cmp(gx[3], gy[3]) == RLC_EQ;
+}
+
+int test_pre_comp_g2(asym::point N) {
+    // Set vectors.
+    int int_vec[5] = {1, 22, 333, 4444, 55555};
+    asym::zpVec x = asym::vector_zp_from_int(int_vec, 5, N);
+
+    // Set g_base.
+    asym::g2 base;
+    asym::g2_gen(base);
+
+    // Get the precomputed table.
+    asym::g2Vec gx, gy, table;
+    table = asym::get_g2_pre_table(base);
+    gx = asym::vector_raise_g2(base, x, 5);
+    gy = asym::vector_raise_g2_with_table(table, x, 5);
+
+    return g2_cmp(gx[3], gy[3]) == RLC_EQ;
+}
+
+
 int main() {
     // Init core and setup.
     asym::point N;
@@ -62,6 +99,8 @@ int main() {
     if (test_merge_vector(N) != 1) return 1;
     if (test_add_vector(N) != 1) return 1;
     if (test_inner_product(N) != 1) return 1;
+    if (test_pre_comp_g1(N) != 1) return 1;
+    if (test_pre_comp_g2(N) != 1) return 1;
 
     return 0;
 }

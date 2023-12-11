@@ -48,6 +48,24 @@ int test_inner_product(sym::point N) {
     return sym::gt_compare(b, r);
 }
 
+int test_pre_comp(sym::point N) {
+    // Set vectors.
+    int int_vec[5] = {1, 22, 333, 4444, 55555};
+    sym::zpVec x = sym::vector_zp_from_int(int_vec, 5, N);
+
+    // Set g_base.
+    sym::g base;
+    sym::g_gen(base);
+
+    // Get the precomputed table.
+    sym::gVec gx, gy, table;
+    table = sym::get_g_pre_table(base);
+    gx = sym::vector_raise(base, x, 5);
+    gy = sym::vector_raise_with_table(table, x, 5);
+
+    return g1_cmp(gx[3], gy[3]) == RLC_EQ;
+}
+
 int main() {
     // Init core and setup.
     sym::point N;
@@ -58,6 +76,7 @@ int main() {
     if (test_merge_vector(N) != 1) return 1;
     if (test_add_vector(N) != 1) return 1;
     if (test_inner_product(N) != 1) return 1;
+    if (test_pre_comp(N) != 1) return 1;
 
     return 0;
 }

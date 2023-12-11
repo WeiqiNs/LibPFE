@@ -3,13 +3,15 @@
 // A global value for this specific scheme only.
 const static int B_SIZE = 4;
 
-sym::ipre::Pp sym::ipre::ppgen(int size, int bound) {
+sym::ipre::Pp sym::ipre::ppgen(bool pre, int size, int bound) {
     sym::ipre::Pp pp{};
+    pp.pre = pre;
     pp.size = size;
     pp.bound = bound;
     sym::init_get_order(pp.mod);
     sym::g_gen(pp.g_base);
     sym::bp_map(pp.gt_base, pp.g_base, pp.g_base);
+    if (pre) pp.table = sym::get_g_pre_table(pp.g_base);
     return pp;
 }
 
@@ -30,21 +32,24 @@ sym::ipre::Ct sym::ipre::enc(Pp pp, Sk sk, const int *message) {
     sym::zpVec s = sym::vector_zp_rand(2, pp.mod);
     sym::zpVec sA = sym::matrix_multiply(s, sk.A, 1, 2, pp.size, pp.mod);
     sym::zpVec sAx = sym::vector_add(sA, x, pp.size);
-    ct.ctx = sym::vector_raise(pp.g_base, sAx, pp.size);
+    if (pp.pre) ct.ctx = sym::vector_raise_with_table(pp.table, sAx, pp.size);
+    else ct.ctx = sym::vector_raise(pp.g_base, sAx, pp.size);
 
     // We compute the function hiding inner product encryption ciphertext.
     zpMat AT = sym::matrix_transpose(sk.A, 2, pp.size);
     sym::zpVec xAT = sym::matrix_multiply(x, AT, 1, pp.size, 2, pp.mod);
     sym::zpVec xATs = sym::vector_join(xAT, s, 2, 2);
     sym::zpVec xATsB = sym::matrix_multiply(xATs, sk.B, 1, B_SIZE, B_SIZE, pp.mod);
-    ct.ctr = sym::vector_raise(pp.g_base, xATsB, B_SIZE);
+    if (pp.pre) ct.ctr = sym::vector_raise_with_table(pp.table, xATsB, B_SIZE);
+    else ct.ctr = sym::vector_raise(pp.g_base, xATsB, B_SIZE);
 
     // We compute the function hiding inner product encryption derived key.
     sym::zpVec sAAT = sym::matrix_multiply(sA, AT, 1, pp.size, 2, pp.mod);
     sym::zpVec xATsAAT = sym::vector_add(xAT, sAAT, 2);
     sym::zpVec sxATsAAT = sym::vector_join(s, xATsAAT, 2, 2);
     sym::zpVec sxATsAATBi = sym::matrix_multiply(sxATsAAT, sk.Bi, 1, B_SIZE, B_SIZE, pp.mod);
-    ct.ctl = sym::vector_raise(pp.g_base, sxATsAATBi, B_SIZE);
+    if (pp.pre)ct.ctl = sym::vector_raise_with_table(pp.table, sxATsAATBi, B_SIZE);
+    else ct.ctl = sym::vector_raise(pp.g_base, sxATsAATBi, B_SIZE);
 
     return ct;
 }

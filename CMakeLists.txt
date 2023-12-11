@@ -1,9 +1,9 @@
 # Set cmake version.
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.27)
 
 # Project name and language.
 project(
-        PPANN
+        CIPE
         VERSION 0.1
         DESCRIPTION "This project implements the inner product revealing encryption."
         LANGUAGES CXX

@@ -3,14 +3,19 @@
 // A global value for this specific scheme only.
 const static int B_SIZE = 4;
 
-asym::ipfe::Pp asym::ipfe::ppgen(int size, int bound) {
+asym::ipfe::Pp asym::ipfe::ppgen(bool pre, int size, int bound) {
     asym::ipfe::Pp pp{};
+    pp.pre = pre;
     pp.size = size;
     pp.bound = bound;
     asym::init_get_order(pp.mod);
     asym::g1_gen(pp.g1_base);
     asym::g2_gen(pp.g2_base);
     asym::bp_map(pp.gt_base, pp.g1_base, pp.g2_base);
+    if (pre) {
+        pp.g1_table = asym::get_g1_pre_table(pp.g1_base);
+        pp.g2_table = asym::get_g2_pre_table(pp.g2_base);
+    }
     return pp;
 }
 
@@ -31,7 +36,8 @@ asym::ipfe::Key asym::ipfe::keyGen(asym::ipfe::Pp pp, asym::ipfe::Sk sk, const i
     asym::zpVec s = asym::vector_zp_rand(2, pp.mod);
     asym::zpVec sA = asym::matrix_multiply(s, sk.A, 1, 2, pp.size, pp.mod);
     asym::zpVec sAx = asym::vector_add(sA, y, pp.size);
-    key.ct = asym::vector_raise_g1(pp.g1_base, sAx, pp.size);
+    if (pp.pre) key.ct = asym::vector_raise_g1_with_table(pp.g1_table, sAx, pp.size);
+    else key.ct = asym::vector_raise_g1(pp.g1_base, sAx, pp.size);
 
     // We compute the function hiding inner product encryption derived key.
     asym::zpMat AT = asym::matrix_transpose(sk.A, 2, pp.size);
@@ -40,7 +46,8 @@ asym::ipfe::Key asym::ipfe::keyGen(asym::ipfe::Pp pp, asym::ipfe::Sk sk, const i
     asym::zpVec xATsAAT = asym::vector_add(xAT, sAAT, 2);
     asym::zpVec sxATsAAT = asym::vector_join(s, xATsAAT, 2, 2);
     asym::zpVec sxATsAATBi = asym::matrix_multiply(sxATsAAT, sk.Bi, 1, B_SIZE, B_SIZE, pp.mod);
-    key.ctl = asym::vector_raise_g1(pp.g1_base, sxATsAATBi, B_SIZE);
+    if (pp.pre) key.ctl = asym::vector_raise_g1_with_table(pp.g1_table, sxATsAATBi, B_SIZE);
+    else key.ctl = asym::vector_raise_g1(pp.g1_base, sxATsAATBi, B_SIZE);
 
     return key;
 }
@@ -54,14 +61,16 @@ asym::ipfe::Ct asym::ipfe::enc(asym::ipfe::Pp pp, asym::ipfe::Sk sk, const int *
     asym::zpVec s = asym::vector_zp_rand(2, pp.mod);
     asym::zpVec sA = asym::matrix_multiply(s, sk.A, 1, 2, pp.size, pp.mod);
     asym::zpVec sAx = asym::vector_add(sA, x, pp.size);
-    ct.ct = asym::vector_raise_g2(pp.g2_base, sAx, pp.size);
+    if (pp.pre) ct.ct = asym::vector_raise_g2_with_table(pp.g2_table, sAx, pp.size);
+    else ct.ct = asym::vector_raise_g2(pp.g2_base, sAx, pp.size);
 
     // We compute the function hiding inner product encryption ciphertext.
     asym::zpMat AT = asym::matrix_transpose(sk.A, 2, pp.size);
     asym::zpVec xAT = asym::matrix_multiply(x, AT, 1, pp.size, 2, pp.mod);
     asym::zpVec xATs = asym::vector_join(xAT, s, 2, 2);
     asym::zpVec xATsB = asym::matrix_multiply(xATs, sk.B, 1, B_SIZE, B_SIZE, pp.mod);
-    ct.ctr = asym::vector_raise_g2(pp.g2_base, xATsB, B_SIZE);
+    if (pp.pre) ct.ctr = asym::vector_raise_g2_with_table(pp.g2_table, xATsB, B_SIZE);
+    else ct.ctr = asym::vector_raise_g2(pp.g2_base, xATsB, B_SIZE);
 
     return ct;
 }
