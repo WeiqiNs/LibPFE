@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.27)
 project(
         CIPE
         VERSION 0.1
-        DESCRIPTION "This project implements the inner product revealing encryption."
+        DESCRIPTION "This library implements a few inner product encryption schemes."
         LANGUAGES CXX
 )
 

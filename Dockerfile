@@ -10,8 +10,7 @@ RUN apt install -y wget build-essential libgmp-dev libssl-dev cmake
 # Clean up.
 RUN apt clean
 
-# Download library and unzip.
-
+# Download library and extract. (One could use git clone but this is easier for swithing to published versions.
 RUN wget -P /home https://github.com/relic-toolkit/relic/archive/refs/heads/$VERSION.tar.gz &&  \
     tar -xzf /home/$VERSION.tar.gz -C /home
 
