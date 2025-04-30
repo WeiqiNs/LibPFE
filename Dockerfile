@@ -1,43 +1,30 @@
-FROM ubuntu:23.10
+# A sample file to show how to build and install the LibRIPFE and use it in another project.
+FROM ubuntu:latest
 
-# Set the relic version number in case we may want to update it.
-ENV VERSION=main
-
-# Update libraries.
-RUN apt update && apt upgrade -y
-# Install needed libraries.
-RUN apt install -y wget build-essential libgmp-dev libssl-dev cmake
+# Perform apt update and install needed libraries.
+RUN apt update && apt install -y git gdb cmake build-essential libgmp-dev libmpfr-dev libssl-dev libgtest-dev
 # Clean up.
-RUN apt clean
+RUN apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Download library and extract. (One could use git clone but this is easier for swithing to published versions.
-RUN wget -P /home https://github.com/relic-toolkit/relic/archive/refs/heads/$VERSION.tar.gz &&  \
-    tar -xzf /home/$VERSION.tar.gz -C /home
+# Download the RELIC library, the RBP library, and the RIPFE library.
+RUN git clone https://github.com/relic-toolkit/relic.git
+RUN git clone https://github.com/WeiqiNs/LibRBP.git
+RUN git clone https://github.com/WeiqiNs/LibRIPFE.git
 
-# Library installation; first install the symmetric curve.
-RUN mkdir -p /home/relic-$VERSION/relic-target-sym
-WORKDIR "/home/relic-$VERSION/relic-target-sym"
-RUN cmake -DLABEL=sym ..
-RUN ../preset/gmp-pbc-ss1536.sh ../
-RUN make
-RUN make install
+# RELIC library installation.
+RUN mkdir /relic/build
+WORKDIR "/relic/build"
+RUN ../preset/gmp-pbc-bls381.sh .. && cmake --build . --parallel && cmake --install .
 
-# Library installation; now install the asymmetric curve.
-RUN mkdir -p /home/relic-$VERSION/relic-target-asym
-WORKDIR "/home/relic-$VERSION/relic-target-asym"
-RUN cmake -DLABEL=asym ..
-RUN ../preset/gmp-pbc-bn254.sh ../
-RUN make
-RUN make install
+# RBP library installation.
+WORKDIR "/LibRBP"
+RUN cmake -B build -S . && cmake --build build --parallel && cmake --install build
 
-# Copy the files over to working directory.
-RUN mkdir -p /home/project/build
-COPY . /home/project
+# RIPFE library installation.
+WORKDIR "/LibRIPFE"
+RUN cmake -B build -S . && cmake --build build --parallel && cmake --install build
 
-# Build the project.
-WORKDIR "/home/project/build"
-RUN cmake /home/project
-RUN make
-
-# Execute the test.
-RUN ctest
+# Build and run the demo.
+WORKDIR "/LibRIPFE/demo"
+RUN cmake -B build -S . && cmake --build build --parallel
+CMD ["/bin/sh", "-c", "./build/demo && tail -f /dev/null"]
