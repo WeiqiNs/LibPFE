@@ -16,7 +16,7 @@ IPFE::TAO::Msk IPFE::TAO::setup(const int size, const bool& pre){
     msk.base = std::make_unique<Gt>(msk.bpg->Gp->gt_raise(r));
 
     return msk;
-}
+} // LCOV_EXCL_LINE
 
 IPFE::TAO::Sk IPFE::TAO::keygen(const Msk& msk, const IntVec& function){
     // Create a new vector of input vector and zeros.
@@ -38,7 +38,7 @@ IPFE::TAO::Sk IPFE::TAO::keygen(const Msk& msk, const IntVec& function){
     sk.vec = msk.bpg->Gp->g2_raise(msk.bpg->Zp->mat_mul(func_vec, msk.b));
 
     return sk;
-}
+} // LCOV_EXCL_LINE
 
 IPFE::TAO::Ct IPFE::TAO::enc(const Msk& msk, const IntVec& message){
     // Create a new vector of input vector and zeros.
@@ -62,11 +62,11 @@ IPFE::TAO::Ct IPFE::TAO::enc(const Msk& msk, const IntVec& message){
     ct.vec = msk.bpg->Gp->g1_raise(msk.bpg->Zp->mat_mul(mess_vec, msk.bi));
 
     return ct;
-}
+} // LCOV_EXCL_LINE
 
 int IPFE::TAO::dec(const Gt& base, const Sk& sk, const Ct& ct, const int lower_bound, const int upper_bound){
     // Compute the target.
     const auto target = Group::pair(ct.vec, sk.vec);
     // Find the exponent and return it.
     return Group::find_exp(base, target, lower_bound, upper_bound);
-}
+} // LCOV_EXCL_LINE

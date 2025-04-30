@@ -17,7 +17,7 @@ IPFE::OPT::Msk IPFE::OPT::setup(const int size, const bool& pre){
     msk.bi = Field::mat_transpose(msk.bpg->Zp->mat_inv(msk.b));
 
     return msk;
-}
+} // LCOV_EXCL_LINE
 
 IPFE::OPT::Sk IPFE::OPT::keygen(const Msk& msk, const IntVec& function){
     // First convert input function to field elements.
@@ -46,7 +46,7 @@ IPFE::OPT::Sk IPFE::OPT::keygen(const Msk& msk, const IntVec& function){
     sk.r = msk.bpg->Gp->g2_raise(bss);
 
     return sk;
-}
+} // LCOV_EXCL_LINE
 
 IPFE::OPT::Ct IPFE::OPT::enc(const Msk& msk, const IntVec& message){
     // First convert input function to field elements.
@@ -70,7 +70,7 @@ IPFE::OPT::Ct IPFE::OPT::enc(const Msk& msk, const IntVec& message){
     ct.r = msk.bpg->Gp->g1_raise(biams);
 
     return ct;
-}
+} // LCOV_EXCL_LINE
 
 int IPFE::OPT::dec(const Gt& base, const Sk& sk, const Ct& ct, const int lower_bound, const int upper_bound){
     // Compute xy + r and r in the exponent.
@@ -80,4 +80,4 @@ int IPFE::OPT::dec(const Gt& base, const Sk& sk, const Ct& ct, const int lower_b
     const auto target = Group::gt_div(xyr, r);
     // Find the exponent and return it.
     return Group::find_exp(base, target, lower_bound, upper_bound);
-}
+} // LCOV_EXCL_LINE

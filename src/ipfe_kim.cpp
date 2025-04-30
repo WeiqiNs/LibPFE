@@ -14,7 +14,7 @@ IPFE::KIM::Msk IPFE::KIM::setup(const int size, const bool& pre){
     msk.bi = Field::mat_transpose(msk.bpg->Zp->mat_mul(msk.bi, msk.det));
 
     return msk;
-}
+} // LCOV_EXCL_LINE
 
 IPFE::KIM::Sk IPFE::KIM::keygen(const Msk& msk, const IntVec& function){
     // First convert input function to field elements.
@@ -35,7 +35,7 @@ IPFE::KIM::Sk IPFE::KIM::keygen(const Msk& msk, const IntVec& function){
     sk.vec = msk.bpg->Gp->g2_raise(input_vec);
 
     return sk;
-}
+} // LCOV_EXCL_LINE
 
 IPFE::KIM::Ct IPFE::KIM::enc(const Msk& msk, const IntVec& message){
     // First convert input message to field elements.
@@ -57,7 +57,7 @@ IPFE::KIM::Ct IPFE::KIM::enc(const Msk& msk, const IntVec& message){
 
     // Raise the vector to g2 and return.
     return ct;
-}
+} // LCOV_EXCL_LINE
 
 int IPFE::KIM::dec(const Sk& sk, const Ct& ct, const int lower_bound, const int upper_bound){
     // Compute the base.
@@ -66,4 +66,4 @@ int IPFE::KIM::dec(const Sk& sk, const Ct& ct, const int lower_bound, const int 
     const auto target = Group::pair(ct.vec, sk.vec);
     // Find the exponent and return it.
     return Group::find_exp(base, target, lower_bound, upper_bound);
-}
+} // LCOV_EXCL_LINE
