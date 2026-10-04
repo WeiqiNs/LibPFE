@@ -1,25 +1,36 @@
-# Enable Google Test framework.
+find_package(GTest QUIET)
+if (NOT GTest_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(googletest
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG v1.17.0
+    )
+    set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+endif ()
 include(GoogleTest)
 
-# List of test source files.
-set(TEST_SOURCES
-        test_kim.cpp
-        test_tao.cpp
-        test_opt.cpp
-)
+set(qualified_tags "")
+foreach (curve IN LISTS RBP_CURVES)
+    string(TOUPPER ${curve} tag)
+    list(APPEND qualified_tags rbp::${tag})
+endforeach ()
+list(JOIN qualified_tags ", " tag_list)
+file(CONFIGURE OUTPUT ${PROJECT_BINARY_DIR}/generated/test/curves.hpp CONTENT "#ifndef RIPFE_TEST_CURVES_HPP
+#define RIPFE_TEST_CURVES_HPP
 
-# Create test executables and register them.
-foreach (TEST_SRC IN LISTS TEST_SOURCES)
-    get_filename_component(TEST_NAME ${TEST_SRC} NAME_WE)
-    add_executable(${TEST_NAME} ${TEST_SRC})
-    target_link_libraries(${TEST_NAME}
-            PRIVATE
-            RIPFE
-            GTest::gtest
-            GTest::gtest_main
-    )
-    gtest_discover_tests(${TEST_NAME})
+#include <gtest/gtest.h>
+#include <rbp/rbp.hpp>
 
-    # Set folder for IDEs.
-    set_target_properties(${TEST_NAME} PROPERTIES FOLDER "Tests")
+using Curves = ::testing::Types<${tag_list}>;
+
+#endif
+")
+
+foreach (source IN ITEMS test_kim.cpp test_opt.cpp test_tao.cpp)
+    get_filename_component(name ${source} NAME_WE)
+    add_executable(${name} ${source})
+    target_include_directories(${name} PRIVATE ${PROJECT_BINARY_DIR}/generated/test)
+    target_link_libraries(${name} PRIVATE RIPFE::RIPFE GTest::gtest_main)
+    gtest_discover_tests(${name})
 endforeach ()

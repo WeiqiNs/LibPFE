@@ -1,11 +1,8 @@
 @PACKAGE_INIT@
 
 include(CMakeFindDependencyMacro)
+find_dependency(RBP)
 
-# Load external dependencies.
-find_dependency(RBP REQUIRED)
-
-# Load the targets.
 include("${CMAKE_CURRENT_LIST_DIR}/RIPFETargets.cmake")
 
 check_required_components(RIPFE)

@@ -1,50 +1,26 @@
-#include <gtest/gtest.h>
-#include "ipfe_tao.hpp"
+#include <curves.hpp>
+#include <RIPFE/ipfe_tao.hpp>
 
-TEST(TaoSchemeTests, InBound){
-    // Generate the master secret key.
-    const auto msk = IPFE::TAO::setup(10);
-    // One could assign the base to another variable (treat it as public parameter).
-    const auto base = *msk.base;
+using IPFE::IntVec;
 
-    // Set the testing integer vectors.
-    const IntVec x = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    const IntVec y = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+template <class C>
+class TaoTest : public ::testing::Test{};
 
-    // Generate ciphertext and function key.
-    const auto sk = IPFE::TAO::keygen(msk, x);
-    const auto ct = IPFE::TAO::enc(msk, y);
+TYPED_TEST_SUITE(TaoTest, Curves);
 
-    // Compute the result.
-    const auto r = IPFE::TAO::dec(base, sk, ct, 300, 400);
+TYPED_TEST(TaoTest, OneTableDecryptsInnerProductsOnlyWithinItsBounds){
+    const auto msk = IPFE::TAO::setup<TypeParam>(4);
+    const rbp::DlogTable<TypeParam> table(msk.base, -100, 100);
+    const auto sk = IPFE::TAO::keygen(msk, IntVec{1, -2, 3, 4});
 
-    // Perform testing.
-    EXPECT_EQ(r, 330);
-
-    // Close the group.
-    BP::close();
+    EXPECT_EQ(IPFE::TAO::dec(table, sk, IPFE::TAO::enc(msk, IntVec{5, 6, 7, 8})), 46);
+    EXPECT_EQ(IPFE::TAO::dec(table, sk, IPFE::TAO::enc(msk, IntVec{-4, 5, -6, 0})), -32);
+    EXPECT_EQ(IPFE::TAO::dec(table, sk, IPFE::TAO::enc(msk, IntVec{5, 6, 7, 30})), std::nullopt);
 }
 
-TEST(TaoSchemeTests, NotInBound){
-    // Generate the master secret key.
-    const auto msk = IPFE::TAO::setup(10);
-    // One could assign the base to another variable (treat it as public parameter).
-    const auto base = *msk.base;
+TYPED_TEST(TaoTest, RejectsVectorsOfTheWrongLength){
+    const auto msk = IPFE::TAO::setup<TypeParam>(4);
 
-    // Set the testing integer vectors.
-    const IntVec x = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    const IntVec y = {1, 2, 3, 4, 5, 6, 7, 8, 9, 100};
-
-    // Generate ciphertext and function key.
-    const auto sk = IPFE::TAO::keygen(msk, x);
-    const auto ct = IPFE::TAO::enc(msk, y);
-
-    // Compute the result.
-    const auto r = IPFE::TAO::dec(base, sk, ct, 100, 200);
-
-    // Perform testing.
-    EXPECT_EQ(r, -1);
-
-    // Close the group.
-    BP::close();
+    EXPECT_THROW((void)IPFE::TAO::keygen(msk, IntVec{1, 2, 3}), rbp::ShapeError);
+    EXPECT_THROW((void)IPFE::TAO::enc(msk, IntVec{1, 2, 3, 4, 5}), rbp::ShapeError);
 }

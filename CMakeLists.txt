@@ -1,89 +1,45 @@
-# Set cmake version.
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 
-# Project name and language.
 project(
         LibRIPFE
         VERSION 0.1
-        DESCRIPTION "This library implements a few inner product functional encryption schemes."
+        DESCRIPTION "Function-hiding inner-product functional encryption over LibRBP curves."
         LANGUAGES CXX
 )
 
-# Setup the coverage knob.
-option(ENABLE_CODE_COVERAGE "Build with --coverage flags" OFF)
-if (ENABLE_CODE_COVERAGE)
-    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+set(CMAKE_CXX_EXTENSIONS OFF)
+if (PROJECT_IS_TOP_LEVEL AND NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif ()
+
+option(RIPFE_BUILD_TESTS "Build the LibRIPFE test suite" ${PROJECT_IS_TOP_LEVEL})
+option(RIPFE_ENABLE_COVERAGE "Build the LibRIPFE tests with --coverage" OFF)
+
+include(GNUInstallDirs)
+include(FetchContent)
+FetchContent_Declare(RBP
+        GIT_REPOSITORY https://github.com/WeiqiNs/LibRBP.git
+        GIT_TAG main
+        GIT_SHALLOW TRUE
+        FIND_PACKAGE_ARGS
+)
+FetchContent_MakeAvailable(RBP)
+
+add_library(RIPFE INTERFACE)
+add_library(RIPFE::RIPFE ALIAS RIPFE)
+target_include_directories(RIPFE INTERFACE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+target_link_libraries(RIPFE INTERFACE RBP::RBP)
+
+include(cmake/RIPFEInstall.cmake)
+
+if (RIPFE_BUILD_TESTS)
+    if (RIPFE_ENABLE_COVERAGE)
         add_compile_options(--coverage -O0 -g)
         add_link_options(--coverage)
     endif ()
+    enable_testing()
+    add_subdirectory(test)
 endif ()
-
-# Set C++ standard.
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Include useful CMake modules.
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
-
-# Enable unit testing.
-enable_testing()
-
-# Find required libraries.
-find_package(RBP REQUIRED)
-
-# Find or fetch GoogleTest for unit testing.
-find_package(GTest)
-if (NOT GTest_FOUND)
-    include(FetchContent)
-    FetchContent_Declare(
-            googletest
-            GIT_REPOSITORY https://github.com/google/googletest.git
-            GIT_TAG main
-    )
-    FetchContent_MakeAvailable(googletest)
-endif ()
-
-# Add source and test directories.
-add_subdirectory(src)
-add_subdirectory(test)
-
-# Define install directory for CMake package files.
-set(RIPFE_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/RIPFE")
-
-# Install the RIPFE target.
-install(TARGETS RIPFE
-        EXPORT RIPFETargets
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
-
-# Install public headers.
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/RIPFE)
-
-# Install and export CMake targets.
-install(EXPORT RIPFETargets
-        FILE RIPFETargets.cmake
-        NAMESPACE RIPFE::
-        DESTINATION ${RIPFE_CMAKE_INSTALL_DIR}
-)
-
-# Generate and install package config files.
-configure_package_config_file(cmake/RIPFEConfig.cmake.in
-        "${CMAKE_CURRENT_BINARY_DIR}/RIPFEConfig.cmake"
-        INSTALL_DESTINATION ${RIPFE_CMAKE_INSTALL_DIR}
-)
-
-write_basic_package_version_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/RIPFEConfigVersion.cmake"
-        VERSION ${PROJECT_VERSION}
-        COMPATIBILITY SameMajorVersion
-)
-
-install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/RIPFEConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/RIPFEConfigVersion.cmake"
-        DESTINATION ${RIPFE_CMAKE_INSTALL_DIR}
-)

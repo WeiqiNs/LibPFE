@@ -1,46 +1,25 @@
-#include <gtest/gtest.h>
-#include "ipfe_kim.hpp"
+#include <curves.hpp>
+#include <RIPFE/ipfe_kim.hpp>
 
-TEST(KimSchemeTests, InBound){
-    // Generate the master secret key.
-    const auto msk = IPFE::KIM::setup(10);
+using IPFE::IntVec;
 
-    // Set the testing integer vectors.
-    const IntVec x = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    const IntVec y = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+template <class C>
+class KimTest : public ::testing::Test{};
 
-    // Generate ciphertext and function key.
-    const auto sk = IPFE::KIM::keygen(msk, x);
-    const auto ct = IPFE::KIM::enc(msk, y);
+TYPED_TEST_SUITE(KimTest, Curves);
 
-    // Compute the result.
-    const auto r = IPFE::KIM::dec(sk, ct, 300, 400);
+TYPED_TEST(KimTest, DecryptsInnerProductsOnlyWithinBounds){
+    const auto msk = IPFE::KIM::setup<TypeParam>(4);
+    const auto sk = IPFE::KIM::keygen(msk, IntVec{1, -2, 3, 4});
 
-    // Perform testing.
-    EXPECT_EQ(r, 330);
-
-    // Close the group.
-    BP::close();
+    EXPECT_EQ(IPFE::KIM::dec(sk, IPFE::KIM::enc(msk, IntVec{5, 6, 7, 8}), 0, 100), 46);
+    EXPECT_EQ(IPFE::KIM::dec(sk, IPFE::KIM::enc(msk, IntVec{-4, 5, -6, 0}), -100, 100), -32);
+    EXPECT_EQ(IPFE::KIM::dec(sk, IPFE::KIM::enc(msk, IntVec{5, 6, 7, 8}), 0, 45), std::nullopt);
 }
 
-TEST(KimSchemeTests, NotInBound){
-    // Generate the master secret key.
-    const auto msk = IPFE::KIM::setup(10);
+TYPED_TEST(KimTest, RejectsVectorsOfTheWrongLength){
+    const auto msk = IPFE::KIM::setup<TypeParam>(4);
 
-    // Set the testing integer vectors.
-    const IntVec x = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    const IntVec y = {1, 2, 3, 4, 5, 6, 7, 8, 9, 100};
-
-    // Generate ciphertext and function key.
-    const auto sk = IPFE::KIM::keygen(msk, x);
-    const auto ct = IPFE::KIM::enc(msk, y);
-
-    // Compute the result.
-    const auto r = IPFE::KIM::dec(sk, ct, 100, 200);
-
-    // Perform testing.
-    EXPECT_EQ(r, -1);
-
-    // Close the group.
-    BP::close();
+    EXPECT_THROW((void)IPFE::KIM::keygen(msk, IntVec{1, 2, 3}), rbp::ShapeError);
+    EXPECT_THROW((void)IPFE::KIM::enc(msk, IntVec{1, 2, 3, 4, 5}), rbp::ShapeError);
 }
