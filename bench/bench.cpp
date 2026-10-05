@@ -94,14 +94,30 @@ namespace{
         });
 
         const auto decrypt = Scheme::decryptor(state, 0, settings.bound);
-        int wrong = 0;
-        const auto dec_ms = milliseconds_per_run(settings.runs, [&](const int i){
-            wrong += decrypt(sks[i], cts[i]) != inputs[i].value;
-        });
-        if (wrong != 0) throw std::runtime_error(std::format("{} decrypted {} values wrongly", Scheme::name, wrong));
+        const auto decryption_ms = [&](const auto& keys){
+            int wrong = 0;
+            const auto ms = milliseconds_per_run(settings.runs, [&](const int i){
+                wrong += decrypt(keys[i], cts[i]) != inputs[i].value;
+            });
+            if (wrong != 0){
+                throw std::runtime_error(std::format("{} decrypted {} values wrongly", Scheme::name, wrong));
+            }
+            return ms;
+        };
+        const auto dec_ms = decryption_ms(sks);
+
+        std::string prepared_columns = "– | –";
+        if constexpr (requires { prepare(sks.front()); }){
+            std::vector<decltype(prepare(sks.front()))> prepared;
+            const auto prepare_ms = milliseconds_per_run(settings.runs, [&](const int i){
+                prepared.push_back(prepare(sks[i]));
+            });
+            prepared_columns = std::format("{:.2f} | {:.2f}", prepare_ms, decryption_ms(prepared));
+        }
 
         std::cout << std::format(
-            "| {} | {:.2f} | {:.2f} | {:.2f} | {:.2f} |\n", Scheme::name, setup_ms, keygen_ms, enc_ms, dec_ms
+            "| {} | {:.2f} | {:.2f} | {:.2f} | {:.2f} | {} |\n", Scheme::name, setup_ms, keygen_ms, enc_ms, dec_ms,
+            prepared_columns
         );
     }
 
@@ -113,7 +129,8 @@ namespace{
     void print_header(const std::string_view curve, const std::string_view values, const Settings& settings){
         std::cout << std::format(
             "\n#### {}, n = {}, {} in [0, {}], mean of {} runs in ms\n\n"
-            "| Scheme | Setup | KeyGen | Enc | Dec |\n| --- | ---: | ---: | ---: | ---: |\n",
+            "| Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |\n"
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |\n",
             curve, settings.length, values, settings.bound, settings.runs
         );
     }
