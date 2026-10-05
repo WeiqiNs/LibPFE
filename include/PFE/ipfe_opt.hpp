@@ -30,6 +30,23 @@ namespace IPFE::OPT{
     };
 
     template <class C>
+    struct PreparedSk{
+        rbp::PreparedG2<C> key;
+    };
+
+    namespace detail{
+        template <class C>
+        [[nodiscard]] std::vector<rbp::G2<C>> key_points(const Sk<C>& sk){
+            return IPFE::detail::joined(sk.vec, sk.r);
+        }
+
+        template <class C>
+        [[nodiscard]] std::vector<rbp::G1<C>> ciphertext_points(const Ct<C>& ct){
+            return IPFE::detail::joined(ct.vec, IPFE::detail::negated(ct.r));
+        }
+    }
+
+    template <class C>
     [[nodiscard]] Msk<C> setup(const std::size_t size){
         auto b = rbp::Matrix<C>::random(b_size, b_size);
         auto bi = b.inverse().transpose();
@@ -58,11 +75,20 @@ namespace IPFE::OPT{
     }
 
     template <class C>
+    [[nodiscard]] PreparedSk<C> prepare(const Sk<C>& sk){
+        return {rbp::PreparedG2<C>(detail::key_points(sk))};
+    }
+
+    template <class C>
     [[nodiscard]] std::optional<std::int64_t> dec(const rbp::DlogTable<C>& table, const Sk<C>& sk, const Ct<C>& ct){
-        detail::PairingProduct<C> product;
-        product.add(ct.vec, sk.vec);
-        product.add(detail::negated(ct.r), sk.r);
-        return table.find(product.evaluate());
+        return table.find(rbp::pair(detail::ciphertext_points(ct), detail::key_points(sk)));
+    }
+
+    template <class C>
+    [[nodiscard]] std::optional<std::int64_t> dec(
+        const rbp::DlogTable<C>& table, const PreparedSk<C>& sk, const Ct<C>& ct
+    ){
+        return table.find(rbp::pair(detail::ciphertext_points(ct), sk.key));
     }
 }
 

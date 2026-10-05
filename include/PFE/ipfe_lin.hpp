@@ -25,6 +25,11 @@ namespace IPFE::LIN{
     };
 
     template <class C>
+    struct PreparedSk{
+        rbp::PreparedG2<C> vec;
+    };
+
+    template <class C>
     [[nodiscard]] Msk<C> setup(const std::size_t size){
         return {rbp::random_vector<C>(2 * size), rbp::random_vector<C>(2 * size + 1)};
     }
@@ -51,7 +56,19 @@ namespace IPFE::LIN{
     }
 
     template <class C>
+    [[nodiscard]] PreparedSk<C> prepare(const Sk<C>& sk){
+        return {rbp::PreparedG2<C>(sk.vec)};
+    }
+
+    template <class C>
     [[nodiscard]] std::optional<std::int64_t> dec(const rbp::DlogTable<C>& table, const Sk<C>& sk, const Ct<C>& ct){
+        return table.find(rbp::pair(ct.vec, sk.vec));
+    }
+
+    template <class C>
+    [[nodiscard]] std::optional<std::int64_t> dec(
+        const rbp::DlogTable<C>& table, const PreparedSk<C>& sk, const Ct<C>& ct
+    ){
         return table.find(rbp::pair(ct.vec, sk.vec));
     }
 }

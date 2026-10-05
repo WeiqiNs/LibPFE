@@ -26,6 +26,11 @@ namespace IPFE::TAO{
     };
 
     template <class C>
+    struct PreparedSk{
+        rbp::PreparedG2<C> vec;
+    };
+
+    template <class C>
     [[nodiscard]] Msk<C> setup(const std::size_t size){
         const auto r = rbp::Zp<C>::random();
         auto b = rbp::Matrix<C>::random(2 * size + 5, 2 * size + 5);
@@ -50,7 +55,19 @@ namespace IPFE::TAO{
     }
 
     template <class C>
+    [[nodiscard]] PreparedSk<C> prepare(const Sk<C>& sk){
+        return {rbp::PreparedG2<C>(sk.vec)};
+    }
+
+    template <class C>
     [[nodiscard]] std::optional<std::int64_t> dec(const rbp::DlogTable<C>& table, const Sk<C>& sk, const Ct<C>& ct){
+        return table.find(rbp::pair(ct.vec, sk.vec));
+    }
+
+    template <class C>
+    [[nodiscard]] std::optional<std::int64_t> dec(
+        const rbp::DlogTable<C>& table, const PreparedSk<C>& sk, const Ct<C>& ct
+    ){
         return table.find(rbp::pair(ct.vec, sk.vec));
     }
 }

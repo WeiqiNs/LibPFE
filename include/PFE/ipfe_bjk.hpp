@@ -29,6 +29,12 @@ namespace IPFE::BJK{
     };
 
     template <class C>
+    struct PreparedSk{
+        rbp::PreparedG2<C> r;
+        rbp::PreparedG2<C> vec;
+    };
+
+    template <class C>
     [[nodiscard]] Msk<C> setup(const std::size_t size){
         auto b = rbp::Matrix<C>::random(2 * size + 4, 2 * size + 4);
         auto bi = b.inverse().transpose();
@@ -62,8 +68,20 @@ namespace IPFE::BJK{
     }
 
     template <class C>
+    [[nodiscard]] PreparedSk<C> prepare(const Sk<C>& sk){
+        return {rbp::PreparedG2<C>(sk.r), rbp::PreparedG2<C>(sk.vec)};
+    }
+
+    template <class C>
     [[nodiscard]] std::optional<std::int64_t> dec(
         const Sk<C>& sk, const Ct<C>& ct, const std::int64_t lower_bound, const std::int64_t upper_bound
+    ){
+        return rbp::dlog(rbp::pair(ct.r, sk.r), rbp::pair(ct.vec, sk.vec), lower_bound, upper_bound);
+    }
+
+    template <class C>
+    [[nodiscard]] std::optional<std::int64_t> dec(
+        const PreparedSk<C>& sk, const Ct<C>& ct, const std::int64_t lower_bound, const std::int64_t upper_bound
     ){
         return rbp::dlog(rbp::pair(ct.r, sk.r), rbp::pair(ct.vec, sk.vec), lower_bound, upper_bound);
     }

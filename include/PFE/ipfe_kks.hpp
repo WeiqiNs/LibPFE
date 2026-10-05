@@ -31,6 +31,11 @@ namespace IPFE::KKS{
         std::vector<rbp::G1<C>> vec;
     };
 
+    template <class C>
+    struct PreparedSk{
+        rbp::PreparedG2<C> vec;
+    };
+
     namespace detail{
         template <class C>
         [[nodiscard]] rbp::Vector<C> ciphertext_half(
@@ -92,7 +97,19 @@ namespace IPFE::KKS{
     }
 
     template <class C>
+    [[nodiscard]] PreparedSk<C> prepare(const Sk<C>& sk){
+        return {rbp::PreparedG2<C>(sk.vec)};
+    }
+
+    template <class C>
     [[nodiscard]] std::optional<std::int64_t> dec(const rbp::DlogTable<C>& table, const Sk<C>& sk, const Ct<C>& ct){
+        return table.find(rbp::pair(ct.vec, sk.vec));
+    }
+
+    template <class C>
+    [[nodiscard]] std::optional<std::int64_t> dec(
+        const rbp::DlogTable<C>& table, const PreparedSk<C>& sk, const Ct<C>& ct
+    ){
         return table.find(rbp::pair(ct.vec, sk.vec));
     }
 }
