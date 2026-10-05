@@ -78,9 +78,11 @@ namespace QFE::SGP{
 
     template <class C>
     [[nodiscard]] std::optional<std::int64_t> dec(const rbp::DlogTable<C>& table, const Sk<C>& sk, const Ct<C>& ct){
-        return table.find(
-            rbp::pair(ct.gamma, sk.key) * detail::bilinear(ct.a0, sk.f, ct.b0) * detail::bilinear(ct.a1, sk.f, ct.b1)
-        );
+        detail::PairingProduct<C> product;
+        product.add(ct.gamma, sk.key);
+        detail::add_bilinear(product, ct.a0, sk.f, ct.b0);
+        detail::add_bilinear(product, ct.a1, sk.f, ct.b1);
+        return table.find(product.evaluate());
     }
 }
 

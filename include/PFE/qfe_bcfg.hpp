@@ -92,10 +92,13 @@ namespace QFE::BCFG{
     [[nodiscard]] std::optional<std::int64_t> dec(
         const rbp::DlogTable<C>& table, const Pk<C>& pk, const Sk<C>& sk, const Ct<C>& ct
     ){
-        return table.find(
-            detail::bilinear(ct.c, sk.f, ct.d) / detail::bilinear(pk.a, sk.f, ct.d_hat)
-            / detail::bilinear(ct.c_hat, sk.f, pk.b) / rbp::pair(sk.s1, ct.e) * rbp::pair(sk.s2, ct.e_hat)
-        );
+        detail::PairingProduct<C> product;
+        detail::add_bilinear(product, ct.c, sk.f, ct.d);
+        detail::add_bilinear(product, detail::negated(pk.a), sk.f, ct.d_hat);
+        detail::add_bilinear(product, detail::negated(ct.c_hat), sk.f, pk.b);
+        product.add(-sk.s1, ct.e);
+        product.add(sk.s2, ct.e_hat);
+        return table.find(product.evaluate());
     }
 }
 

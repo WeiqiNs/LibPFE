@@ -59,7 +59,10 @@ namespace IPFE::OPT{
 
     template <class C>
     [[nodiscard]] std::optional<std::int64_t> dec(const rbp::DlogTable<C>& table, const Sk<C>& sk, const Ct<C>& ct){
-        return table.find(rbp::pair(ct.vec, sk.vec) / rbp::pair(ct.r, sk.r));
+        detail::PairingProduct<C> product;
+        product.add(ct.vec, sk.vec);
+        product.add(detail::negated(ct.r), sk.r);
+        return table.find(product.evaluate());
     }
 }
 

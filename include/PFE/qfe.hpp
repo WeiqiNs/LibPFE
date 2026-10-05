@@ -29,18 +29,20 @@ namespace QFE{
             return points;
         }
 
+        using IPFE::detail::negated;
+        using IPFE::detail::PairingProduct;
+
         template <class C>
-        [[nodiscard]] rbp::Gt<C> bilinear(
-            const std::vector<rbp::G1<C>>& p, const rbp::Matrix<C>& f, const std::vector<rbp::G2<C>>& q
+        void add_bilinear(
+            PairingProduct<C>& product, const std::vector<rbp::G1<C>>& p, const rbp::Matrix<C>& f,
+            const std::vector<rbp::G2<C>>& q
         ){
-            std::vector<rbp::G1<C>> combined;
-            combined.reserve(f.cols());
+            if (f.cols() != q.size()) throw rbp::ShapeError("a bilinear form needs one G2 point per matrix column");
             for (std::size_t j = 0; j < f.cols(); ++j){
                 rbp::Vector<C> column(f.rows());
                 for (std::size_t i = 0; i < f.rows(); ++i) column[i] = f.at(i, j);
-                combined.push_back(rbp::msm(p, column));
+                product.add(rbp::msm(p, column), q[j]);
             }
-            return rbp::pair(combined, q);
         }
     }
 }
