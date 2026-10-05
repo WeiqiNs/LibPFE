@@ -14,6 +14,7 @@ endif ()
 
 option(RIPFE_BUILD_TESTS "Build the LibRIPFE test suite" ${PROJECT_IS_TOP_LEVEL})
 option(RIPFE_ENABLE_COVERAGE "Build the LibRIPFE tests with --coverage" OFF)
+option(RIPFE_BUILD_BENCH "Build the LibRIPFE benchmark" OFF)
 
 include(GNUInstallDirs)
 include(FetchContent)
@@ -42,4 +43,8 @@ if (RIPFE_BUILD_TESTS)
     endif ()
     enable_testing()
     add_subdirectory(test)
+endif ()
+
+if (RIPFE_BUILD_BENCH)
+    add_subdirectory(bench)
 endif ()

@@ -66,14 +66,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Configure an optimized build, fetching LibRBP
-        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+      - name: Configure an optimized build with the benchmark, fetching LibRBP
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DRIPFE_BUILD_BENCH=ON
 
       - name: Build
         run: cmake --build build --parallel
 
       - name: Run tests on the optimized build
         run: ctest --test-dir build --output-on-failure
+
+      - name: Smoke-test the benchmark
+        run: ./build/bench/ripfe_bench 1 4
 
       - name: Install LibRIPFE and the LibRBP it fetched
         run: |

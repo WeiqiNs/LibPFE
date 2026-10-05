@@ -19,15 +19,16 @@ list(JOIN qualified_tags ", " tag_list)
 file(CONFIGURE OUTPUT ${PROJECT_BINARY_DIR}/generated/test/curves.hpp CONTENT "#ifndef RIPFE_TEST_CURVES_HPP
 #define RIPFE_TEST_CURVES_HPP
 
+#include <tuple>
 #include <gtest/gtest.h>
 #include <rbp/rbp.hpp>
 
-using Curves = ::testing::Types<${tag_list}>;
+using CurveTuple = std::tuple<${tag_list}>;
 
 #endif
 ")
 
-foreach (source IN ITEMS test_kim.cpp test_opt.cpp test_tao.cpp)
+foreach (source IN ITEMS test_ipfe.cpp test_qfe.cpp)
     get_filename_component(name ${source} NAME_WE)
     add_executable(${name} ${source})
     target_include_directories(${name} PRIVATE ${PROJECT_BINARY_DIR}/generated/test)
