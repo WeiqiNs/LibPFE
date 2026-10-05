@@ -1,5 +1,5 @@
-#ifndef RIPFE_IPFE_TAO_HPP
-#define RIPFE_IPFE_TAO_HPP
+#ifndef PFE_IPFE_TAO_HPP
+#define PFE_IPFE_TAO_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -35,22 +35,18 @@ namespace IPFE::TAO{
 
     template <class C>
     [[nodiscard]] Sk<C> keygen(const Msk<C>& msk, const IntVec& function){
-        auto f = to_vector<C>(function);
-        f.resize(2 * function.size() + 2);
-        f.push_back(rbp::Zp<C>::random());
-        f.push_back(rbp::Zp<C>::random());
-        f.emplace_back();
-        return {rbp::G2<C>::mul_generator(f * msk.b)};
+        const auto f = to_vector<C>(function);
+        const auto tail = rbp::Vector<C>{rbp::Zp<C>::random(), rbp::Zp<C>::random(), {}};
+        const auto encoded = rbp::concat(rbp::concat(f, rbp::Vector<C>(f.size() + 2)), tail);
+        return {rbp::G2<C>::mul_generator(encoded * msk.b)};
     }
 
     template <class C>
     [[nodiscard]] Ct<C> enc(const Msk<C>& msk, const IntVec& message){
-        auto m = to_vector<C>(message);
-        m.resize(2 * message.size());
-        m.push_back(rbp::Zp<C>::random());
-        m.push_back(rbp::Zp<C>::random());
-        m.resize(m.size() + 3);
-        return {rbp::G1<C>::mul_generator(m * msk.bi)};
+        const auto m = to_vector<C>(message);
+        const auto tail = rbp::Vector<C>{rbp::Zp<C>::random(), rbp::Zp<C>::random(), {}, {}, {}};
+        const auto encoded = rbp::concat(rbp::concat(m, rbp::Vector<C>(m.size())), tail);
+        return {rbp::G1<C>::mul_generator(encoded * msk.bi)};
     }
 
     template <class C>

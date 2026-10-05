@@ -1,5 +1,5 @@
-#ifndef RIPFE_QFE_BCFG_HPP
-#define RIPFE_QFE_BCFG_HPP
+#ifndef PFE_QFE_BCFG_HPP
+#define PFE_QFE_BCFG_HPP
 
 #include <cstddef>
 #include <cstdint>

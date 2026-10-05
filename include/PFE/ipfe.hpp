@@ -1,5 +1,5 @@
-#ifndef RIPFE_IPFE_HPP
-#define RIPFE_IPFE_HPP
+#ifndef PFE_IPFE_HPP
+#define PFE_IPFE_HPP
 
 #include <cstdint>
 #include <vector>

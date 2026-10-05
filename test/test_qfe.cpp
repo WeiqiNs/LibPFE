@@ -1,4 +1,4 @@
-#include "schemes.hpp"
+#include "scheme_types.hpp"
 
 using QFE::IntMat;
 using QFE::IntVec;

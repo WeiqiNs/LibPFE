@@ -1,4 +1,4 @@
-#include "schemes.hpp"
+#include "scheme_types.hpp"
 
 using IPFE::IntVec;
 

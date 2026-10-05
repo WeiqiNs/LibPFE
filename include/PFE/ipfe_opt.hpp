@@ -1,5 +1,5 @@
-#ifndef RIPFE_IPFE_OPT_HPP
-#define RIPFE_IPFE_OPT_HPP
+#ifndef PFE_IPFE_OPT_HPP
+#define PFE_IPFE_OPT_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -45,18 +45,16 @@ namespace IPFE::OPT{
     [[nodiscard]] Sk<C> keygen(const Msk<C>& msk, const IntVec& function){
         const auto f = to_vector<C>(function);
         const auto s = rbp::random_vector<C>(2);
-        const auto fas = msk.a * f + msk.a * msk.a.transpose() * s;
-        return {rbp::G2<C>::mul_generator(msk.b * rbp::concat(s, fas)), rbp::G2<C>::mul_generator(s * msk.a + f)};
+        const auto masked = s * msk.a + f;
+        return {rbp::G2<C>::mul_generator(msk.b * rbp::concat(s, msk.a * masked)), rbp::G2<C>::mul_generator(masked)};
     }
 
     template <class C>
     [[nodiscard]] Ct<C> enc(const Msk<C>& msk, const IntVec& message){
         const auto m = to_vector<C>(message);
         const auto s = rbp::random_vector<C>(2);
-        return {
-            rbp::G1<C>::mul_generator(msk.bi * rbp::concat(msk.a * m, s)),
-            rbp::G1<C>::mul_generator(s * msk.a + m)
-        };
+        const auto masked = s * msk.a + m;
+        return {rbp::G1<C>::mul_generator(msk.bi * rbp::concat(msk.a * m, s)), rbp::G1<C>::mul_generator(masked)};
     }
 
     template <class C>

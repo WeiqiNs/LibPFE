@@ -1,5 +1,5 @@
-#ifndef RIPFE_QFE_HPP
-#define RIPFE_QFE_HPP
+#ifndef PFE_QFE_HPP
+#define PFE_QFE_HPP
 
 #include <cstddef>
 #include <vector>

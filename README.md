@@ -1,9 +1,9 @@
-# RELIC based IPFE Library (LibRIPFE)
+# Pairing-based Functional Encryption Library (LibPFE)
 
-[![LibRIPFE CI](https://github.com/WeiqiNs/LibRIPFE/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/WeiqiNs/LibRIPFE/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/WeiqiNs/LibRIPFE/graph/badge.svg?token=RQ5Z4BVJ6W)](https://codecov.io/gh/WeiqiNs/LibRIPFE)
+[![LibPFE CI](https://github.com/WeiqiNs/LibPFE/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/WeiqiNs/LibPFE/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/WeiqiNs/LibPFE/graph/badge.svg?token=RQ5Z4BVJ6W)](https://codecov.io/gh/WeiqiNs/LibPFE)
 
-**LibRIPFE** is a header-only C++20 library of pairing-based functional encryption: private-key *function-hiding*
+**LibPFE** is a header-only C++20 library of pairing-based functional encryption: private-key *function-hiding*
 inner-product functional encryption (IPFE) and public-key quadratic functional encryption (QFE). It builds on
 [LibRBP](https://github.com/WeiqiNs/LibRBP), so every scheme is a template over a LibRBP curve and runs on any curve
 LibRBP was built with.
@@ -16,12 +16,12 @@ A key for y decrypts a ciphertext of x to the inner product ⟨x, y⟩.
 
 | Scheme | API | Function hiding | Security | Ciphertext | Fixed-base `dec` | Reference |
 | --- | --- | :---: | --- | :---: | :---: | --- |
-| Bishop et al. | `IPFE::BJK` in `RIPFE/ipfe_bjk.hpp` | weak | SXDH | 2n + 6 | no | [ASIACRYPT 2015](https://doi.org/10.1007/978-3-662-48797-6_20) |
-| Tomida et al. | `IPFE::TAO` in `RIPFE/ipfe_tao.hpp` | full | XDLIN | 2n + 5 | yes | [ISC 2016](https://doi.org/10.1007/978-3-319-45871-7_24) |
-| Kim et al. | `IPFE::KIM` in `RIPFE/ipfe_kim.hpp` | full | SIM, generic group model | n + 1 | no | [SCN 2018](https://doi.org/10.1007/978-3-319-98113-0_29) |
-| Lin | `IPFE::LIN` in `RIPFE/ipfe_lin.hpp` | full | SXDH | 2n + 2 | yes | [CRYPTO 2017](https://doi.org/10.1007/978-3-319-63688-7_20) |
-| Kim, Kim and Seo | `IPFE::KKS` in `RIPFE/ipfe_kks.hpp` | full | SXDH | 2n + 8 | yes | [TCS 2019](https://doi.org/10.1016/j.tcs.2019.03.016) |
-| Ojaswi et al. | `IPFE::OPT` in `RIPFE/ipfe_opt.hpp` | full | SIM, generic group model | n + 4 | yes | [CiC 2025](https://doi.org/10.62056/abe0zo-3y) |
+| Bishop et al. | `IPFE::BJK` in `PFE/ipfe_bjk.hpp` | weak | SXDH | 2n + 6 | no | [ASIACRYPT 2015](https://doi.org/10.1007/978-3-662-48797-6_20) |
+| Tomida et al. | `IPFE::TAO` in `PFE/ipfe_tao.hpp` | full | XDLIN | 2n + 5 | yes | [ISC 2016](https://doi.org/10.1007/978-3-319-45871-7_24) |
+| Kim et al. | `IPFE::KIM` in `PFE/ipfe_kim.hpp` | full | SIM, generic group model | n + 1 | no | [SCN 2018](https://doi.org/10.1007/978-3-319-98113-0_29) |
+| Lin | `IPFE::LIN` in `PFE/ipfe_lin.hpp` | full | SXDH | 2n + 2 | yes | [CRYPTO 2017](https://doi.org/10.1007/978-3-319-63688-7_20) |
+| Kim, Kim and Seo | `IPFE::KKS` in `PFE/ipfe_kks.hpp` | full | SXDH | 2n + 8 | yes | [TCS 2019](https://doi.org/10.1016/j.tcs.2019.03.016) |
+| Ojaswi et al. | `IPFE::OPT` in `PFE/ipfe_opt.hpp` | full | SIM, generic group model | n + 4 | yes | [CiC 2025](https://doi.org/10.62056/abe0zo-3y) |
 
 For vectors of length n, a ciphertext has the listed number of G1 elements and a key the same number of G2 elements.
 Lin's scheme is the paper's weakly function-hiding scheme, lifted to full function hiding as the paper describes.
@@ -32,8 +32,8 @@ A key for an n × n matrix F decrypts a ciphertext of (x, y) to xᵀFy. Anyone w
 
 | Scheme | API | Security | Ciphertext | Key | Reference |
 | --- | --- | --- | :---: | :---: | --- |
-| Baltico et al. | `QFE::BCFG` in `RIPFE/qfe_bcfg.hpp` | adaptive, generic group model | 2n G1 + (2n + 2) G2 | 2 G1 | [CRYPTO 2017](https://doi.org/10.1007/978-3-319-63688-7_3) |
-| Dufour-Sans et al. | `QFE::SGP` in `RIPFE/qfe_sgp.hpp` | generic group model | (2n + 1) G1 + 2n G2 | 1 G2 | [NeurIPS 2019](https://proceedings.neurips.cc/paper_files/paper/2019/hash/9d28de8ff9bb6a3fa41fddfdc28f3bc1-Abstract.html) |
+| Baltico et al. | `QFE::BCFG` in `PFE/qfe_bcfg.hpp` | adaptive, generic group model | 2n G1 + (2n + 2) G2 | 2 G1 | [CRYPTO 2017](https://doi.org/10.1007/978-3-319-63688-7_3) |
+| Dufour-Sans et al. | `QFE::SGP` in `PFE/qfe_sgp.hpp` | generic group model | (2n + 1) G1 + 2n G2 | 1 G2 | [NeurIPS 2019](https://proceedings.neurips.cc/paper_files/paper/2019/hash/9d28de8ff9bb6a3fa41fddfdc28f3bc1-Abstract.html) |
 
 Both decrypt against a fixed base, and keys also carry F. Dufour-Sans et al.'s scheme appears in the NeurIPS paper by
 Ryffel, Dufour-Sans, Gay, Bach and Pointcheval.
@@ -41,7 +41,7 @@ Ryffel, Dufour-Sans, Gay, Bach and Pointcheval.
 ## Usage
 
 ```cpp
-#include <RIPFE/ipfe_opt.hpp>
+#include <PFE/ipfe_opt.hpp>
 
 using C = rbp::BLS12_381;
 const auto msk = IPFE::OPT::setup<C>(3);
@@ -52,7 +52,7 @@ const auto result = IPFE::OPT::dec(table, sk, ct);
 ```
 
 ```cpp
-#include <RIPFE/qfe_sgp.hpp>
+#include <PFE/qfe_sgp.hpp>
 
 const auto keys = QFE::SGP::setup<C>(2);
 const rbp::DlogTable<C> table(QFE::SGP::base<C>(), -1000, 1000);
@@ -69,7 +69,7 @@ and ciphertext, so their `dec` takes the bounds instead. Baltico et al.'s `dec` 
 ## Benchmarks
 
 [`bench/bench.cpp`](bench/bench.cpp) times every scheme on every curve and checks each decryption against the true
-result. Build with `-DRIPFE_BUILD_BENCH=ON` and run `./build/bench/ripfe_bench [runs] [lengths...]`; with no arguments
+result. Build with `-DPFE_BUILD_BENCH=ON` and run `./build/bench/pfe_bench [runs] [lengths...]`; with no arguments
 it runs 10 times at n = 10 and n = 100 and prints tables like the ones below for BLS12-381, BN254 and SS1536.
 
 The numbers below are the mean milliseconds per operation on BLS12-381, from a Release build with GCC 15 on an AMD
@@ -115,7 +115,7 @@ Quadratic FE, n = 100:
 
 ## Building
 
-LibRIPFE builds on Linux with CMake, a C++20 compiler, GMP (`libgmp-dev`) and git. It uses an installed LibRBP
+LibPFE builds on Linux with CMake, a C++20 compiler, GMP (`libgmp-dev`) and git. It uses an installed LibRBP
 when it finds one, and otherwise fetches and builds LibRBP from its `main` branch, which `cmake --install` then installs
 alongside it.
 `-DFETCHCONTENT_SOURCE_DIR_RBP=<path>` builds from a local LibRBP checkout instead.
@@ -127,17 +127,17 @@ ctest --test-dir build --output-on-failure
 cmake --install build
 ```
 
-The tests run every scheme on every curve the installed LibRBP provides. Consumers use
-`find_package(RIPFE REQUIRED)` and `target_link_libraries(app PRIVATE RIPFE::RIPFE)`; the [demo](demo) folder is a
+The tests run every scheme on every curve LibRBP was built with. Consumers use
+`find_package(PFE REQUIRED)` and `target_link_libraries(app PRIVATE PFE::PFE)`; the [demo](demo) folder is a
 complete consumer.
 
 | Option | Default | Effect |
 | --- | --- | --- |
-| `RIPFE_BUILD_TESTS` | on when top-level | Build the test suite |
-| `RIPFE_ENABLE_COVERAGE` | off | Build the tests with `--coverage` |
-| `RIPFE_BUILD_BENCH` | off | Build the benchmark in `bench/` |
+| `PFE_BUILD_TESTS` | on when top-level | Build the test suite |
+| `PFE_ENABLE_COVERAGE` | off | Build the tests with `--coverage` |
+| `PFE_BUILD_BENCH` | off | Build the benchmark in `bench/` |
 
 ## Docker
 
-`docker build -t libripfe:dev .` builds LibRIPFE and LibRBP from source, runs the tests, installs both and builds the
-demo; `docker run --rm libripfe:dev` runs the demo on every curve.
+`docker build -t libpfe:dev .` builds LibPFE and LibRBP from source, runs the tests, installs both and builds the
+demo; `docker run --rm libpfe:dev` runs the demo on every curve.

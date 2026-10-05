@@ -16,8 +16,8 @@ foreach (curve IN LISTS RBP_CURVES)
     list(APPEND qualified_tags rbp::${tag})
 endforeach ()
 list(JOIN qualified_tags ", " tag_list)
-file(CONFIGURE OUTPUT ${PROJECT_BINARY_DIR}/generated/test/curves.hpp CONTENT "#ifndef RIPFE_TEST_CURVES_HPP
-#define RIPFE_TEST_CURVES_HPP
+file(CONFIGURE OUTPUT ${PROJECT_BINARY_DIR}/generated/test/curves.hpp CONTENT "#ifndef PFE_TEST_CURVES_HPP
+#define PFE_TEST_CURVES_HPP
 
 #include <tuple>
 #include <gtest/gtest.h>
@@ -32,6 +32,6 @@ foreach (source IN ITEMS test_ipfe.cpp test_qfe.cpp)
     get_filename_component(name ${source} NAME_WE)
     add_executable(${name} ${source})
     target_include_directories(${name} PRIVATE ${PROJECT_BINARY_DIR}/generated/test)
-    target_link_libraries(${name} PRIVATE RIPFE::RIPFE GTest::gtest_main)
+    target_link_libraries(${name} PRIVATE PFE::PFE GTest::gtest_main)
     gtest_discover_tests(${name})
 endforeach ()

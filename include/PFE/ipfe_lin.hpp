@@ -1,5 +1,5 @@
-#ifndef RIPFE_IPFE_LIN_HPP
-#define RIPFE_IPFE_LIN_HPP
+#ifndef PFE_IPFE_LIN_HPP
+#define PFE_IPFE_LIN_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -36,8 +36,7 @@ namespace IPFE::LIN{
 
     template <class C>
     [[nodiscard]] Sk<C> keygen(const Msk<C>& msk, const IntVec& function){
-        auto f = to_vector<C>(function);
-        f.resize(2 * function.size());
+        const auto f = rbp::concat(to_vector<C>(function), rbp::Vector<C>(function.size()));
         const auto key = rbp::concat(rbp::Vector<C>{rbp::inner(f, msk.s1)}, f);
         const auto r = rbp::Zp<C>::random();
         return {rbp::G2<C>::mul_generator(rbp::concat(rbp::Vector<C>{-r}, msk.s2 * r + key))};
@@ -45,8 +44,7 @@ namespace IPFE::LIN{
 
     template <class C>
     [[nodiscard]] Ct<C> enc(const Msk<C>& msk, const IntVec& message){
-        auto m = to_vector<C>(message);
-        m.resize(2 * message.size());
+        const auto m = rbp::concat(to_vector<C>(message), rbp::Vector<C>(message.size()));
         const auto r = rbp::Zp<C>::random();
         const auto ct = rbp::concat(rbp::Vector<C>{-r}, msk.s1 * r + m);
         return {rbp::G1<C>::mul_generator(rbp::concat(rbp::Vector<C>{rbp::inner(msk.s2, ct)}, ct))};

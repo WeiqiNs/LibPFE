@@ -1,5 +1,5 @@
 #include <iostream>
-#include <RIPFE/ipfe_opt.hpp>
+#include <PFE/ipfe_opt.hpp>
 
 template <class C>
 bool inner_product(){

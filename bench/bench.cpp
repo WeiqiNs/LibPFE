@@ -9,14 +9,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
-#include <RIPFE/ipfe_bjk.hpp>
-#include <RIPFE/ipfe_kim.hpp>
-#include <RIPFE/ipfe_kks.hpp>
-#include <RIPFE/ipfe_lin.hpp>
-#include <RIPFE/ipfe_opt.hpp>
-#include <RIPFE/ipfe_tao.hpp>
-#include <RIPFE/qfe_bcfg.hpp>
-#include <RIPFE/qfe_sgp.hpp>
+#include "schemes.hpp"
 
 namespace{
     struct Settings{
@@ -80,28 +73,13 @@ namespace{
         return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count() / runs;
     }
 
-    auto bounded(const std::int64_t bound){
-        return [bound](const auto&){
-            return [bound](const auto& sk, const auto& ct){ return dec(sk, ct, std::int64_t{0}, bound); };
-        };
-    }
-
-    template <class C, class Base>
-    auto tabled(const std::int64_t bound, Base base){
-        return [bound, base](const auto& msk){
-            return [table = rbp::DlogTable<C>(base(msk), 0, bound)](const auto& sk, const auto& ct){
-                return dec(table, sk, ct);
-            };
-        };
-    }
-
-    template <class Family, class Setup, class Decryptor>
-    void measure(const std::string_view scheme, const Settings& settings, Setup setup, Decryptor decryptor){
+    template <class Family, class Scheme>
+    void measure(const Settings& settings){
         const auto inputs = samples(settings, Family::degree);
 
-        std::vector<decltype(setup(settings.length))> states;
+        std::vector<decltype(Scheme::setup(settings.length))> states;
         const auto setup_ms = milliseconds_per_run(settings.runs, [&](int){
-            states.push_back(setup(settings.length));
+            states.push_back(Scheme::setup(settings.length));
         });
         const auto& state = states.back();
 
@@ -115,16 +93,21 @@ namespace{
             cts.push_back(Family::encrypt(state, inputs[i]));
         });
 
-        const auto decrypt = decryptor(state);
+        const auto decrypt = Scheme::decryptor(state, 0, settings.bound);
         int wrong = 0;
         const auto dec_ms = milliseconds_per_run(settings.runs, [&](const int i){
             wrong += decrypt(sks[i], cts[i]) != inputs[i].value;
         });
-        if (wrong != 0) throw std::runtime_error(std::format("{} decrypted {} values wrongly", scheme, wrong));
+        if (wrong != 0) throw std::runtime_error(std::format("{} decrypted {} values wrongly", Scheme::name, wrong));
 
         std::cout << std::format(
-            "| {} | {:.2f} | {:.2f} | {:.2f} | {:.2f} |\n", scheme, setup_ms, keygen_ms, enc_ms, dec_ms
+            "| {} | {:.2f} | {:.2f} | {:.2f} | {:.2f} |\n", Scheme::name, setup_ms, keygen_ms, enc_ms, dec_ms
         );
+    }
+
+    template <class Family, class... Schemes>
+    void measure_each(const Settings& settings){
+        (measure<Family, Schemes>(settings), ...);
     }
 
     void print_header(const std::string_view curve, const std::string_view values, const Settings& settings){
@@ -144,30 +127,9 @@ namespace{
     void benchmark(const Settings& settings){
         initialize_curve<C>();
         print_header(C::name, "inner products", settings);
-        measure<InnerProduct>("Bishop et al.", settings, IPFE::BJK::setup<C>, bounded(settings.bound));
-        measure<InnerProduct>("Tomida et al.", settings, IPFE::TAO::setup<C>, tabled<C>(
-            settings.bound, [](const auto& msk){ return msk.base; }
-        ));
-        measure<InnerProduct>("Kim et al.", settings, IPFE::KIM::setup<C>, bounded(settings.bound));
-        measure<InnerProduct>("Lin", settings, IPFE::LIN::setup<C>, tabled<C>(
-            settings.bound, [](const auto&){ return IPFE::LIN::base<C>(); }
-        ));
-        measure<InnerProduct>("Kim, Kim and Seo", settings, IPFE::KKS::setup<C>, tabled<C>(
-            settings.bound, [](const auto&){ return IPFE::KKS::base<C>(); }
-        ));
-        measure<InnerProduct>("Ojaswi et al.", settings, IPFE::OPT::setup<C>, tabled<C>(
-            settings.bound, [](const auto&){ return IPFE::OPT::base<C>(); }
-        ));
-
+        measure_each<InnerProduct, Bjk<C>, Tao<C>, Kim<C>, Lin<C>, Kks<C>, Opt<C>>(settings);
         print_header(C::name, "quadratic forms", settings);
-        measure<Quadratic>("Baltico et al.", settings, QFE::BCFG::setup<C>, [bound = settings.bound](const auto& keys){
-            return [&keys, table = rbp::DlogTable<C>(QFE::BCFG::base<C>(), 0, bound)](const auto& sk, const auto& ct){
-                return dec(table, keys.pk, sk, ct);
-            };
-        });
-        measure<Quadratic>("Dufour-Sans et al.", settings, QFE::SGP::setup<C>, tabled<C>(
-            settings.bound, [](const auto&){ return QFE::SGP::base<C>(); }
-        ));
+        measure_each<Quadratic, Bcfg<C>, Sgp<C>>(settings);
 
         const auto table_ms = milliseconds_per_run(1, [&](int){
             (void)rbp::DlogTable<C>(rbp::Gt<C>::generator(), 0, settings.bound);

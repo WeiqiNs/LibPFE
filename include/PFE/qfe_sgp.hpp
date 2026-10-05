@@ -1,5 +1,5 @@
-#ifndef RIPFE_QFE_SGP_HPP
-#define RIPFE_QFE_SGP_HPP
+#ifndef PFE_QFE_SGP_HPP
+#define PFE_QFE_SGP_HPP
 
 #include <cstddef>
 #include <cstdint>

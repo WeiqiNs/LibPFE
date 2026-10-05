@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Configure a coverage build, fetching LibRBP
-        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DRIPFE_ENABLE_COVERAGE=ON
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DPFE_ENABLE_COVERAGE=ON
 
       - name: Build
         run: cmake --build build --parallel
@@ -41,7 +41,7 @@ jobs:
         run: |
           lcov --capture --directory build --output-file all.info --filter brace,blank \
                --ignore-errors mismatch,inconsistent,unused,negative
-          lcov --extract all.info "$PWD/include/RIPFE/*" --output-file coverage.info --ignore-errors unused
+          lcov --extract all.info "$PWD/include/PFE/*" --output-file coverage.info --ignore-errors unused
           lcov --summary coverage.info --fail-under-lines 100
 
       - name: Upload to Codecov
@@ -67,7 +67,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Configure an optimized build with the benchmark, fetching LibRBP
-        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DRIPFE_BUILD_BENCH=ON
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DPFE_BUILD_BENCH=ON
 
       - name: Build
         run: cmake --build build --parallel
@@ -76,9 +76,9 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
       - name: Smoke-test the benchmark
-        run: ./build/bench/ripfe_bench 1 4
+        run: ./build/bench/pfe_bench 1 4
 
-      - name: Install LibRIPFE and the LibRBP it fetched
+      - name: Install LibPFE and the LibRBP it fetched
         run: |
           sudo cmake --install build
           sudo ldconfig

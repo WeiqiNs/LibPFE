@@ -1,5 +1,5 @@
-#ifndef RIPFE_IPFE_BJK_HPP
-#define RIPFE_IPFE_BJK_HPP
+#ifndef PFE_IPFE_BJK_HPP
+#define PFE_IPFE_BJK_HPP
 
 #include <cstddef>
 #include <cstdint>
