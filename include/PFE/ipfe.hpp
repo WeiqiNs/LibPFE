@@ -24,6 +24,12 @@ namespace IPFE{
                 rights.push_back(q);
             }
 
+            void add(const std::vector<rbp::G1<C>>& ps, const std::vector<rbp::G2<C>>& qs){
+                if (ps.size() != qs.size()) throw rbp::ShapeError("a pairing product needs one G2 point per G1 point");
+                lefts.insert(lefts.end(), ps.begin(), ps.end());
+                rights.insert(rights.end(), qs.begin(), qs.end());
+            }
+
             [[nodiscard]] rbp::Gt<C> evaluate() const{
                 return rbp::pair(lefts, rights);
             }

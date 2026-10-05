@@ -33,6 +33,8 @@ namespace QFE::BCFG{
         rbp::Matrix<C> f;
         rbp::G1<C> s1;
         rbp::G1<C> s2;
+        std::vector<rbp::G1<C>> af;
+        std::vector<rbp::G2<C>> fb;
     };
 
     template <class C>
@@ -65,8 +67,13 @@ namespace QFE::BCFG{
     [[nodiscard]] Sk<C> keygen(const Msk<C>& msk, const IntMat& function){
         auto f = to_matrix<C>(function);
         const auto gamma = rbp::Zp<C>::random();
-        auto s1 = rbp::G1<C>::mul_generator(rbp::inner(msk.a, f * msk.b) + gamma * msk.w);
-        return {std::move(f), std::move(s1), rbp::G1<C>::mul_generator(gamma)};
+        const auto fb = f * msk.b;
+        auto s1 = rbp::G1<C>::mul_generator(rbp::inner(msk.a, fb) + gamma * msk.w);
+        auto af = rbp::G1<C>::mul_generator(msk.a * f);
+        return {
+            std::move(f), std::move(s1), rbp::G1<C>::mul_generator(gamma), std::move(af),
+            rbp::G2<C>::mul_generator(fb)
+        };
     }
 
     template <class C>
@@ -89,13 +96,11 @@ namespace QFE::BCFG{
     }
 
     template <class C>
-    [[nodiscard]] std::optional<std::int64_t> dec(
-        const rbp::DlogTable<C>& table, const Pk<C>& pk, const Sk<C>& sk, const Ct<C>& ct
-    ){
+    [[nodiscard]] std::optional<std::int64_t> dec(const rbp::DlogTable<C>& table, const Sk<C>& sk, const Ct<C>& ct){
         detail::PairingProduct<C> product;
         detail::add_bilinear(product, ct.c, sk.f, ct.d);
-        detail::add_bilinear(product, detail::negated(pk.a), sk.f, ct.d_hat);
-        detail::add_bilinear(product, detail::negated(ct.c_hat), sk.f, pk.b);
+        product.add(detail::negated(sk.af), ct.d_hat);
+        product.add(detail::negated(ct.c_hat), sk.fb);
         product.add(-sk.s1, ct.e);
         product.add(sk.s2, ct.e_hat);
         return table.find(product.evaluate());

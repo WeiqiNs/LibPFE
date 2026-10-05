@@ -32,11 +32,12 @@ A key for an n × n matrix F decrypts a ciphertext of (x, y) to xᵀFy. Anyone w
 
 | Scheme | API | Security | Ciphertext | Key | Reference |
 | --- | --- | --- | :---: | :---: | --- |
-| Baltico et al. | `QFE::BCFG` in `PFE/qfe_bcfg.hpp` | adaptive, generic group model | 2n G1 + (2n + 2) G2 | 2 G1 | [CRYPTO 2017](https://doi.org/10.1007/978-3-319-63688-7_3) |
+| Baltico et al. | `QFE::BCFG` in `PFE/qfe_bcfg.hpp` | adaptive, generic group model | 2n G1 + (2n + 2) G2 | (n + 2) G1 + n G2 | [CRYPTO 2017](https://doi.org/10.1007/978-3-319-63688-7_3) |
 | Dufour-Sans et al. | `QFE::SGP` in `PFE/qfe_sgp.hpp` | generic group model | (2n + 1) G1 + 2n G2 | 1 G2 | [NeurIPS 2019](https://proceedings.neurips.cc/paper_files/paper/2019/hash/9d28de8ff9bb6a3fa41fddfdc28f3bc1-Abstract.html) |
 
-Both decrypt against a fixed base, and keys also carry F. Dufour-Sans et al.'s scheme appears in the NeurIPS paper by
-Ryffel, Dufour-Sans, Gay, Bach and Pointcheval.
+Both decrypt against a fixed base, and keys also carry F. A Baltico et al. key also carries the products of F with the
+master key that decryption would otherwise derive from the public key. Dufour-Sans et al.'s scheme appears in the
+NeurIPS paper by Ryffel, Dufour-Sans, Gay, Bach and Pointcheval.
 
 ## Usage
 
@@ -66,7 +67,7 @@ const auto result = QFE::SGP::dec(table, sk, ct);
 `dec` returns the result, or `std::nullopt` when it falls outside the searched range. Schemes with a fixed-base `dec`
 decrypt against one base (`msk.base` for Tomida et al., `<SCHEME>::base<C>()` for the others), so build one
 `rbp::DlogTable` for a range and reuse it across decryptions. Bishop et al. and Kim et al. derive the base from each key
-and ciphertext, so their `dec` takes the bounds instead. Baltico et al.'s `dec` also takes the public key.
+and ciphertext, so their `dec` takes the bounds instead.
 
 Every IPFE scheme also has `prepare(sk)`, which precomputes the key's pairing lines once (LibRBP's `PreparedG2`);
 `dec` with the prepared key returns the same result at about two thirds of the cost on BLS12-381 and BN254, so prepare a
@@ -78,47 +79,47 @@ key that will decrypt many ciphertexts. A prepared key holds about 20 KB per G2 
 result. Build with `-DPFE_BUILD_BENCH=ON` and run `./build/bench/pfe_bench [runs] [lengths...]`; with no arguments
 it runs 10 times at n = 10 and n = 100 and prints tables like the ones below for BLS12-381, BN254 and SS1536.
 
-The numbers below are the mean milliseconds per operation on BLS12-381, from a Release build with GCC 15 on an AMD
-Ryzen 7 9800X3D, with LibRBP's RELIC on its GMP backend. Inputs are random vectors (and matrices) whose results lie
-in [0, 10000]. Fixed-base schemes reuse one discrete-log table, which takes about 0.4 ms to build and is excluded from
-Dec; Bishop et al. and Kim et al. search the range on every decryption. Prepare is the one-time cost of `prepare(sk)`, and Prepared Dec decrypts with the prepared key; the QFE
-schemes have no prepared keys.
+The numbers below are the mean milliseconds per operation on BLS12-381, from a Release build with GCC 15 on an AMD Ryzen
+7 9800X3D, with LibRBP's RELIC on its GMP backend. Inputs are random vectors (and matrices) whose results lie in [0,
+10000]. Fixed-base schemes reuse one discrete-log table, which takes about 0.4 ms to build and is excluded from Dec;
+Bishop et al. and Kim et al. search the range on every decryption. Prepare is the one-time cost of `prepare(sk)`, and
+Prepared Dec decrypts with the prepared key; the QFE schemes have no prepared keys.
 
 Inner-product FE, n = 10:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Bishop et al. | 2.33 | 3.31 | 1.19 | 6.28 | 2.36 | 4.19 |
-| Tomida et al. | 2.68 | 3.16 | 1.14 | 5.19 | 2.25 | 3.19 |
-| Kim et al. | 0.28 | 1.39 | 0.50 | 3.49 | 0.89 | 2.69 |
-| Lin | 0.04 | 2.76 | 0.98 | 4.65 | 1.94 | 2.88 |
-| Kim, Kim and Seo | 0.07 | 3.53 | 1.25 | 5.75 | 2.47 | 3.50 |
-| Ojaswi et al. | 0.07 | 1.75 | 0.63 | 3.17 | 1.24 | 2.04 |
+| Bishop et al. | 2.42 | 3.30 | 1.20 | 6.21 | 2.31 | 4.23 |
+| Tomida et al. | 2.73 | 3.15 | 1.14 | 5.14 | 2.22 | 3.18 |
+| Kim et al. | 0.29 | 1.38 | 0.49 | 3.45 | 0.87 | 2.67 |
+| Lin | 0.04 | 2.78 | 0.97 | 4.58 | 1.91 | 2.87 |
+| Kim, Kim and Seo | 0.07 | 3.49 | 1.24 | 5.68 | 2.44 | 3.50 |
+| Ojaswi et al. | 0.07 | 1.75 | 0.63 | 3.13 | 1.22 | 2.04 |
 
 Inner-product FE, n = 100:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Bishop et al. | 939.67 | 29.49 | 12.53 | 39.72 | 18.36 | 23.09 |
-| Tomida et al. | 953.96 | 27.95 | 11.59 | 38.64 | 18.16 | 22.01 |
-| Kim et al. | 117.22 | 13.47 | 5.38 | 20.08 | 8.95 | 12.10 |
-| Lin | 0.39 | 25.40 | 8.93 | 37.86 | 18.28 | 21.76 |
-| Kim, Kim and Seo | 0.61 | 26.09 | 9.19 | 39.19 | 18.34 | 22.29 |
-| Ojaswi et al. | 0.25 | 13.05 | 4.61 | 19.77 | 9.17 | 11.44 |
+| Bishop et al. | 1001.43 | 29.38 | 12.60 | 39.92 | 18.61 | 23.36 |
+| Tomida et al. | 963.97 | 29.04 | 11.85 | 38.82 | 18.41 | 22.46 |
+| Kim et al. | 120.12 | 13.67 | 5.27 | 20.20 | 9.02 | 12.18 |
+| Lin | 0.39 | 25.47 | 8.94 | 38.01 | 18.33 | 21.85 |
+| Kim, Kim and Seo | 0.62 | 26.24 | 9.22 | 39.34 | 18.47 | 22.44 |
+| Ojaswi et al. | 0.25 | 13.11 | 4.61 | 19.88 | 9.23 | 11.50 |
 
 Quadratic FE, n = 10:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Baltico et al. | 1.83 | 0.10 | 6.95 | 7.39 | – | – |
-| Dufour-Sans et al. | 1.73 | 0.14 | 8.08 | 5.33 | – | – |
+| Baltico et al. | 1.83 | 1.83 | 6.89 | 6.83 | – | – |
+| Dufour-Sans et al. | 1.72 | 0.14 | 8.03 | 5.19 | – | – |
 
 Quadratic FE, n = 100:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Baltico et al. | 17.21 | 1.28 | 60.01 | 76.24 | – | – |
-| Dufour-Sans et al. | 17.15 | 1.64 | 68.33 | 51.00 | – | – |
+| Baltico et al. | 17.32 | 19.18 | 61.90 | 65.82 | – | – |
+| Dufour-Sans et al. | 17.84 | 1.89 | 69.12 | 51.17 | – | – |
 
 ## Building
 

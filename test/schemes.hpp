@@ -80,10 +80,8 @@ template <class C>
 struct Bcfg{
     static constexpr std::string_view name = "Baltico et al.";
     static auto setup(const std::size_t n){ return QFE::BCFG::setup<C>(n); }
-    static auto decryptor(const QFE::BCFG::Keys<C>& keys, const std::int64_t lo, const std::int64_t hi){
-        return [pk = keys.pk, table = rbp::DlogTable<C>(QFE::BCFG::base<C>(), lo, hi)](const auto& sk, const auto& ct){
-            return QFE::BCFG::dec(table, pk, sk, ct);
-        };
+    static auto decryptor(const QFE::BCFG::Keys<C>&, const std::int64_t lo, const std::int64_t hi){
+        return table_decryptor<C>(QFE::BCFG::base<C>(), lo, hi);
     }
 };
 
