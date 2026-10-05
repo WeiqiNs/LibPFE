@@ -79,47 +79,46 @@ result. Build with `-DPFE_BUILD_BENCH=ON` and run `./build/bench/pfe_bench [runs
 it runs 10 times at n = 10 and n = 100 and prints tables like the ones below for BLS12-381, BN254 and SS1536.
 
 The numbers below are the mean milliseconds per operation on BLS12-381, from a Release build with GCC 15 on an AMD
-Ryzen 7 9800X3D, with LibRBP's default `RBP_ARITH=auto`, which runs RELIC on its x86-64 assembly backend. Inputs are
-random vectors (and matrices) whose results lie in [0, 10000]. Fixed-base schemes reuse one discrete-log table, which
-takes about 0.25 ms to build and is excluded from Dec; Bishop et al. and Kim et al. search the range on every
-decryption. Prepare is the one-time cost of `prepare(sk)`, and Prepared Dec decrypts with the prepared key; the QFE
+Ryzen 7 9800X3D, with LibRBP's RELIC on its GMP backend. Inputs are random vectors (and matrices) whose results lie
+in [0, 10000]. Fixed-base schemes reuse one discrete-log table, which takes about 0.4 ms to build and is excluded from
+Dec; Bishop et al. and Kim et al. search the range on every decryption. Prepare is the one-time cost of `prepare(sk)`, and Prepared Dec decrypts with the prepared key; the QFE
 schemes have no prepared keys.
 
 Inner-product FE, n = 10:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Bishop et al. | 2.29 | 1.47 | 0.63 | 3.33 | 1.20 | 2.34 |
-| Tomida et al. | 2.58 | 1.41 | 0.60 | 2.74 | 1.15 | 1.80 |
-| Kim et al. | 0.28 | 0.61 | 0.26 | 1.85 | 0.44 | 1.49 |
-| Lin | 0.04 | 1.21 | 0.50 | 2.45 | 0.97 | 1.62 |
-| Kim, Kim and Seo | 0.07 | 1.54 | 0.63 | 3.04 | 1.23 | 1.98 |
-| Ojaswi et al. | 0.07 | 0.78 | 0.32 | 1.67 | 0.61 | 1.14 |
+| Bishop et al. | 2.33 | 3.31 | 1.19 | 6.28 | 2.36 | 4.19 |
+| Tomida et al. | 2.68 | 3.16 | 1.14 | 5.19 | 2.25 | 3.19 |
+| Kim et al. | 0.28 | 1.39 | 0.50 | 3.49 | 0.89 | 2.69 |
+| Lin | 0.04 | 2.76 | 0.98 | 4.65 | 1.94 | 2.88 |
+| Kim, Kim and Seo | 0.07 | 3.53 | 1.25 | 5.75 | 2.47 | 3.50 |
+| Ojaswi et al. | 0.07 | 1.75 | 0.63 | 3.17 | 1.24 | 2.04 |
 
 Inner-product FE, n = 100:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Bishop et al. | 1006.35 | 14.82 | 8.06 | 20.98 | 9.27 | 13.12 |
-| Tomida et al. | 1006.65 | 13.46 | 6.91 | 20.39 | 9.14 | 12.59 |
-| Kim et al. | 117.77 | 6.34 | 3.16 | 10.69 | 4.55 | 6.97 |
-| Lin | 0.39 | 11.09 | 4.61 | 20.09 | 9.45 | 12.41 |
-| Kim, Kim and Seo | 0.61 | 11.39 | 4.72 | 20.66 | 9.16 | 12.76 |
-| Ojaswi et al. | 0.24 | 5.73 | 2.37 | 10.47 | 4.56 | 6.57 |
+| Bishop et al. | 939.67 | 29.49 | 12.53 | 39.72 | 18.36 | 23.09 |
+| Tomida et al. | 953.96 | 27.95 | 11.59 | 38.64 | 18.16 | 22.01 |
+| Kim et al. | 117.22 | 13.47 | 5.38 | 20.08 | 8.95 | 12.10 |
+| Lin | 0.39 | 25.40 | 8.93 | 37.86 | 18.28 | 21.76 |
+| Kim, Kim and Seo | 0.61 | 26.09 | 9.19 | 39.19 | 18.34 | 22.29 |
+| Ojaswi et al. | 0.25 | 13.05 | 4.61 | 19.77 | 9.17 | 11.44 |
 
 Quadratic FE, n = 10:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Baltico et al. | 0.85 | 0.06 | 3.34 | 4.14 | – | – |
-| Dufour-Sans et al. | 0.79 | 0.07 | 3.84 | 2.99 | – | – |
+| Baltico et al. | 1.83 | 0.10 | 6.95 | 7.39 | – | – |
+| Dufour-Sans et al. | 1.73 | 0.14 | 8.08 | 5.33 | – | – |
 
 Quadratic FE, n = 100:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Baltico et al. | 7.95 | 1.27 | 29.02 | 44.82 | – | – |
-| Dufour-Sans et al. | 7.96 | 1.72 | 32.84 | 30.17 | – | – |
+| Baltico et al. | 17.21 | 1.28 | 60.01 | 76.24 | – | – |
+| Dufour-Sans et al. | 17.15 | 1.64 | 68.33 | 51.00 | – | – |
 
 ## Building
 
