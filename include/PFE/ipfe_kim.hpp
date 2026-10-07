@@ -29,7 +29,7 @@ namespace IPFE::KIM{
 
     template <class C>
     struct PreparedSk{
-        rbp::G2<C> r;
+        rbp::PreparedG2<C> r;
         rbp::PreparedG2<C> vec;
     };
 
@@ -57,7 +57,7 @@ namespace IPFE::KIM{
 
     template <class C>
     [[nodiscard]] PreparedSk<C> prepare(const Sk<C>& sk){
-        return {sk.r, rbp::PreparedG2<C>(sk.vec)};
+        return {rbp::PreparedG2<C>(std::vector{sk.r}), rbp::PreparedG2<C>(sk.vec)};
     }
 
     template <class C>
@@ -71,7 +71,7 @@ namespace IPFE::KIM{
     [[nodiscard]] std::optional<std::int64_t> dec(
         const PreparedSk<C>& sk, const Ct<C>& ct, const std::int64_t lower_bound, const std::int64_t upper_bound
     ){
-        return rbp::dlog(rbp::pair(ct.r, sk.r), rbp::pair(ct.vec, sk.vec), lower_bound, upper_bound);
+        return rbp::dlog(rbp::pair(std::vector{ct.r}, sk.r), rbp::pair(ct.vec, sk.vec), lower_bound, upper_bound);
     }
 }
 

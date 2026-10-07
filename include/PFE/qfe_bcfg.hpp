@@ -38,6 +38,15 @@ namespace QFE::BCFG{
     };
 
     template <class C>
+    struct PreparedSk{
+        rbp::Matrix<C> f;
+        rbp::G1<C> s1;
+        rbp::G1<C> s2;
+        std::vector<rbp::G1<C>> af;
+        rbp::PreparedG2<C> fb;
+    };
+
+    template <class C>
     struct Ct{
         std::vector<rbp::G1<C>> c;
         std::vector<rbp::G1<C>> c_hat;
@@ -46,6 +55,21 @@ namespace QFE::BCFG{
         rbp::G2<C> e;
         rbp::G2<C> e_hat;
     };
+
+    namespace detail{
+        template <class C, class Key>
+        [[nodiscard]] std::optional<std::int64_t> decrypt(
+            const rbp::DlogTable<C>& table, const Key& sk, const Ct<C>& ct
+        ){
+            rbp::PairingProduct<C> product;
+            QFE::detail::add_bilinear(product, ct.c, sk.f, ct.d);
+            product.add(QFE::detail::negated(sk.af), ct.d_hat);
+            product.add(QFE::detail::negated(ct.c_hat), sk.fb);
+            product.add(-sk.s1, ct.e);
+            product.add(sk.s2, ct.e_hat);
+            return table.find(product.evaluate());
+        }
+    }
 
     template <class C>
     [[nodiscard]] Keys<C> setup(const std::size_t size){
@@ -86,24 +110,30 @@ namespace QFE::BCFG{
         const auto z = rbp::Zp<C>::random();
         const auto blind = r * s - z - t;
         return {
-            detail::masked(pk.a, r, x),
-            detail::masked(pk.a, t, x * s),
-            detail::masked(pk.b, s, y),
-            detail::masked(pk.b, z, y * r),
+            QFE::detail::masked(pk.a, r, x),
+            QFE::detail::masked(pk.a, t, x * s),
+            QFE::detail::masked(pk.b, s, y),
+            QFE::detail::masked(pk.b, z, y * r),
             rbp::G2<C>::mul_generator(blind),
             pk.w * blind
         };
     }
 
     template <class C>
+    [[nodiscard]] PreparedSk<C> prepare(const Sk<C>& sk){
+        return {sk.f, sk.s1, sk.s2, sk.af, rbp::PreparedG2<C>(sk.fb)};
+    }
+
+    template <class C>
     [[nodiscard]] std::optional<std::int64_t> dec(const rbp::DlogTable<C>& table, const Sk<C>& sk, const Ct<C>& ct){
-        detail::PairingProduct<C> product;
-        detail::add_bilinear(product, ct.c, sk.f, ct.d);
-        product.add(detail::negated(sk.af), ct.d_hat);
-        product.add(detail::negated(ct.c_hat), sk.fb);
-        product.add(-sk.s1, ct.e);
-        product.add(sk.s2, ct.e_hat);
-        return table.find(product.evaluate());
+        return detail::decrypt(table, sk, ct);
+    }
+
+    template <class C>
+    [[nodiscard]] std::optional<std::int64_t> dec(
+        const rbp::DlogTable<C>& table, const PreparedSk<C>& sk, const Ct<C>& ct
+    ){
+        return detail::decrypt(table, sk, ct);
     }
 }
 

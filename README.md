@@ -69,9 +69,12 @@ decrypt against one base (`msk.base` for Tomida et al., `<SCHEME>::base<C>()` fo
 `rbp::DlogTable` for a range and reuse it across decryptions. Bishop et al. and Kim et al. derive the base from each key
 and ciphertext, so their `dec` takes the bounds instead.
 
-Every IPFE scheme also has `prepare(sk)`, which precomputes the key's pairing lines once (LibRBP's `PreparedG2`);
-`dec` with the prepared key returns the same result at about two thirds of the cost on BLS12-381 and BN254, so prepare a
-key that will decrypt many ciphertexts. A prepared key holds about 20 KB per G2 point on BLS12-381.
+Every scheme also has `prepare(sk)`, which precomputes the key's pairing lines once (LibRBP's `PreparedG2`), and `dec`
+with the prepared key returns the same result. An IPFE key is all of its decryption's G2 side, so its prepared `dec`
+costs about two thirds of `dec` on BLS12-381 and BN254; prepare a key that will decrypt many ciphertexts. A QFE
+decryption also pairs the ciphertext's own G2 points, which LibRBP prepares on every call (`rbp::PairingProduct`), so
+a prepared Baltico et al. key saves less, and a prepared Dufour-Sans et al. key, which fixes a single G2 point, is no
+faster than the plain key. A prepared key holds about 20 KB per G2 point on BLS12-381.
 
 ## Benchmarks
 
@@ -83,43 +86,43 @@ The numbers below are the mean milliseconds per operation on BLS12-381, from a R
 7 9800X3D, with LibRBP's RELIC on its GMP backend. Inputs are random vectors (and matrices) whose results lie in [0,
 10000]. Fixed-base schemes reuse one discrete-log table, which takes about 0.4 ms to build and is excluded from Dec;
 Bishop et al. and Kim et al. search the range on every decryption. Prepare is the one-time cost of `prepare(sk)`, and
-Prepared Dec decrypts with the prepared key; the QFE schemes have no prepared keys.
+Prepared Dec decrypts with the prepared key.
 
 Inner-product FE, n = 10:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Bishop et al. | 2.42 | 3.30 | 1.20 | 6.21 | 2.31 | 4.23 |
-| Tomida et al. | 2.73 | 3.15 | 1.14 | 5.14 | 2.22 | 3.18 |
-| Kim et al. | 0.29 | 1.38 | 0.49 | 3.45 | 0.87 | 2.67 |
-| Lin | 0.04 | 2.78 | 0.97 | 4.58 | 1.91 | 2.87 |
-| Kim, Kim and Seo | 0.07 | 3.49 | 1.24 | 5.68 | 2.44 | 3.50 |
-| Ojaswi et al. | 0.07 | 1.75 | 0.63 | 3.13 | 1.22 | 2.04 |
+| Bishop et al. | 2.36 | 3.39 | 1.20 | 6.30 | 2.39 | 4.20 |
+| Tomida et al. | 2.84 | 3.25 | 1.15 | 5.26 | 2.28 | 3.24 |
+| Kim et al. | 0.29 | 1.42 | 0.50 | 3.48 | 0.98 | 2.59 |
+| Lin | 0.04 | 2.84 | 0.98 | 4.71 | 1.96 | 2.93 |
+| Kim, Kim and Seo | 0.07 | 3.62 | 1.24 | 5.83 | 2.50 | 3.58 |
+| Ojaswi et al. | 0.07 | 1.81 | 0.63 | 3.20 | 1.25 | 2.07 |
 
 Inner-product FE, n = 100:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Bishop et al. | 1001.43 | 29.38 | 12.60 | 39.92 | 18.61 | 23.36 |
-| Tomida et al. | 963.97 | 29.04 | 11.85 | 38.82 | 18.41 | 22.46 |
-| Kim et al. | 120.12 | 13.67 | 5.27 | 20.20 | 9.02 | 12.18 |
-| Lin | 0.39 | 25.47 | 8.94 | 38.01 | 18.33 | 21.85 |
-| Kim, Kim and Seo | 0.62 | 26.24 | 9.22 | 39.34 | 18.47 | 22.44 |
-| Ojaswi et al. | 0.25 | 13.11 | 4.61 | 19.88 | 9.23 | 11.50 |
+| Bishop et al. | 925.80 | 29.60 | 12.84 | 39.52 | 18.25 | 23.34 |
+| Tomida et al. | 946.27 | 27.92 | 11.71 | 38.59 | 18.08 | 22.34 |
+| Kim et al. | 118.61 | 13.52 | 5.30 | 20.14 | 8.97 | 12.11 |
+| Lin | 0.41 | 25.37 | 8.95 | 37.83 | 18.08 | 21.86 |
+| Kim, Kim and Seo | 0.61 | 26.05 | 9.23 | 38.94 | 18.27 | 22.51 |
+| Ojaswi et al. | 0.25 | 13.04 | 4.61 | 19.74 | 9.08 | 11.49 |
 
 Quadratic FE, n = 10:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Baltico et al. | 1.83 | 1.83 | 6.89 | 6.83 | – | – |
-| Dufour-Sans et al. | 1.72 | 0.14 | 8.03 | 5.19 | – | – |
+| Baltico et al. | 1.88 | 1.84 | 7.06 | 7.03 | 0.90 | 6.44 |
+| Dufour-Sans et al. | 1.75 | 0.14 | 8.28 | 5.30 | 0.09 | 5.39 |
 
 Quadratic FE, n = 100:
 
 | Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Baltico et al. | 17.32 | 19.18 | 61.90 | 65.82 | – | – |
-| Dufour-Sans et al. | 17.84 | 1.89 | 69.12 | 51.17 | – | – |
+| Baltico et al. | 17.22 | 18.70 | 60.06 | 65.92 | 9.71 | 57.16 |
+| Dufour-Sans et al. | 17.13 | 1.91 | 68.26 | 51.06 | 0.97 | 53.24 |
 
 ## Building
 

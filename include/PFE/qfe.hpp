@@ -30,11 +30,10 @@ namespace QFE{
         }
 
         using IPFE::detail::negated;
-        using IPFE::detail::PairingProduct;
 
         template <class C>
         void add_bilinear(
-            PairingProduct<C>& product, const std::vector<rbp::G1<C>>& p, const rbp::Matrix<C>& f,
+            rbp::PairingProduct<C>& product, const std::vector<rbp::G1<C>>& p, const rbp::Matrix<C>& f,
             const std::vector<rbp::G2<C>>& q
         ){
             if (f.cols() != q.size()) throw rbp::ShapeError("a bilinear form needs one G2 point per matrix column");
