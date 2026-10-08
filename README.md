@@ -72,9 +72,14 @@ and ciphertext, so their `dec` takes the bounds instead.
 Every scheme also has `prepare(sk)`, which precomputes the key's pairing lines once (LibRBP's `PreparedG2`), and `dec`
 with the prepared key returns the same result. An IPFE key is all of its decryption's G2 side, so its prepared `dec`
 costs about two thirds of `dec` on BLS12-381 and BN254; prepare a key that will decrypt many ciphertexts. A QFE
-decryption also pairs the ciphertext's own G2 points, which LibRBP prepares on every call (`rbp::PairingProduct`), so
-a prepared Baltico et al. key saves less, and a prepared Dufour-Sans et al. key, which fixes a single G2 point, is no
-faster than the plain key. A prepared key holds about 20 KB per G2 point on BLS12-381.
+decryption also pairs the ciphertext's own G2 points, which no key can prepare, so a prepared Baltico et al. key saves
+less, and a prepared Dufour-Sans et al. key, which fixes one G2 point, decrypts in about the time of the plain key. A
+prepared key holds about 20 KB per G2 point on BLS12-381.
+
+Keys, prepared keys and `rbp::DlogTable` are immutable after construction, so any number of threads may decrypt
+different ciphertexts with one shared key and table. Every `dec` builds its own `rbp::PairingProduct`, so nothing
+per-call is shared; a prepared key must outlive every `dec` that uses it. `setup`, `keygen` and `enc` may run on any
+thread, each drawing from that thread's own LibRBP generator.
 
 ## Benchmarks
 
@@ -86,43 +91,45 @@ The numbers below are the mean milliseconds per operation on BLS12-381, from a R
 7 9800X3D, with LibRBP's RELIC on its GMP backend. Inputs are random vectors (and matrices) whose results lie in [0,
 10000]. Fixed-base schemes reuse one discrete-log table, which takes about 0.4 ms to build and is excluded from Dec;
 Bishop et al. and Kim et al. search the range on every decryption. Prepare is the one-time cost of `prepare(sk)`, and
-Prepared Dec decrypts with the prepared key.
+Prepared Dec decrypts with the prepared key. Prepared Dec/s is the throughput, in decryptions per second, of one thread
+per hardware thread decrypting the same ciphertexts at once with the shared prepared keys and table; each thread's
+first decryption, which sets up its RELIC context, is not timed.
 
 Inner-product FE, n = 10:
 
-| Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Bishop et al. | 2.36 | 3.39 | 1.20 | 6.30 | 2.39 | 4.20 |
-| Tomida et al. | 2.84 | 3.25 | 1.15 | 5.26 | 2.28 | 3.24 |
-| Kim et al. | 0.29 | 1.42 | 0.50 | 3.48 | 0.98 | 2.59 |
-| Lin | 0.04 | 2.84 | 0.98 | 4.71 | 1.96 | 2.93 |
-| Kim, Kim and Seo | 0.07 | 3.62 | 1.24 | 5.83 | 2.50 | 3.58 |
-| Ojaswi et al. | 0.07 | 1.81 | 0.63 | 3.20 | 1.25 | 2.07 |
+| Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec | Prepared Dec/s on 16 threads |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Bishop et al. | 1.89 | 3.68 | 1.32 | 6.81 | 2.61 | 4.49 | 2064 |
+| Tomida et al. | 2.32 | 3.57 | 1.26 | 5.72 | 2.49 | 3.49 | 2674 |
+| Kim et al. | 0.26 | 1.57 | 0.57 | 3.78 | 1.07 | 2.83 | 3350 |
+| Lin | 0.04 | 3.10 | 1.09 | 5.07 | 2.16 | 3.12 | 2946 |
+| Kim, Kim and Seo | 0.07 | 3.99 | 1.39 | 6.31 | 2.76 | 3.81 | 2434 |
+| Ojaswi et al. | 0.07 | 2.00 | 0.71 | 3.45 | 1.37 | 2.20 | 3398 |
 
 Inner-product FE, n = 100:
 
-| Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Bishop et al. | 925.80 | 29.60 | 12.84 | 39.52 | 18.25 | 23.34 |
-| Tomida et al. | 946.27 | 27.92 | 11.71 | 38.59 | 18.08 | 22.34 |
-| Kim et al. | 118.61 | 13.52 | 5.30 | 20.14 | 8.97 | 12.11 |
-| Lin | 0.41 | 25.37 | 8.95 | 37.83 | 18.08 | 21.86 |
-| Kim, Kim and Seo | 0.61 | 26.05 | 9.23 | 38.94 | 18.27 | 22.51 |
-| Ojaswi et al. | 0.25 | 13.04 | 4.61 | 19.74 | 9.08 | 11.49 |
+| Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec | Prepared Dec/s on 16 threads |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Bishop et al. | 720.80 | 31.56 | 12.93 | 43.27 | 20.43 | 25.01 | 366 |
+| Tomida et al. | 721.90 | 30.35 | 11.65 | 42.36 | 20.32 | 24.01 | 382 |
+| Kim et al. | 90.30 | 14.73 | 5.68 | 22.07 | 10.10 | 13.13 | 704 |
+| Lin | 0.37 | 28.08 | 10.03 | 41.61 | 19.80 | 23.55 | 385 |
+| Kim, Kim and Seo | 0.59 | 29.03 | 10.33 | 42.48 | 20.61 | 24.19 | 378 |
+| Ojaswi et al. | 0.24 | 14.58 | 5.28 | 21.70 | 10.27 | 12.43 | 721 |
 
 Quadratic FE, n = 10:
 
-| Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Baltico et al. | 1.88 | 1.84 | 7.06 | 7.03 | 0.90 | 6.44 |
-| Dufour-Sans et al. | 1.75 | 0.14 | 8.28 | 5.30 | 0.09 | 5.39 |
+| Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec | Prepared Dec/s on 16 threads |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Baltico et al. | 2.05 | 2.00 | 7.76 | 7.53 | 0.97 | 6.63 | 1382 |
+| Dufour-Sans et al. | 1.93 | 0.15 | 9.11 | 5.68 | 0.10 | 5.58 | 1654 |
 
 Quadratic FE, n = 100:
 
-| Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Baltico et al. | 17.22 | 18.70 | 60.06 | 65.92 | 9.71 | 57.16 |
-| Dufour-Sans et al. | 17.13 | 1.91 | 68.26 | 51.06 | 0.97 | 53.24 |
+| Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec | Prepared Dec/s on 16 threads |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Baltico et al. | 19.18 | 19.93 | 66.84 | 68.79 | 10.08 | 60.05 | 151 |
+| Dufour-Sans et al. | 19.18 | 0.71 | 76.30 | 55.16 | 0.31 | 55.14 | 165 |
 
 ## Building
 

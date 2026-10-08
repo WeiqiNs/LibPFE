@@ -1,13 +1,17 @@
+#include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <format>
 #include <iostream>
+#include <latch>
 #include <random>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 #include "schemes.hpp"
 
@@ -16,6 +20,7 @@ namespace{
         int runs;
         std::size_t length;
         std::int64_t bound;
+        unsigned threads;
     };
 
     struct Sample{
@@ -94,30 +99,51 @@ namespace{
         });
 
         const auto decrypt = Scheme::decryptor(state, 0, settings.bound);
+        const auto require_correct = [](const int wrong){
+            if (wrong != 0){
+                throw std::runtime_error(std::format("{} decrypted {} values wrongly", Scheme::name, wrong));
+            }
+        };
         const auto decryption_ms = [&](const auto& keys){
             int wrong = 0;
             const auto ms = milliseconds_per_run(settings.runs, [&](const int i){
                 wrong += decrypt(keys[i], cts[i]) != inputs[i].value;
             });
-            if (wrong != 0){
-                throw std::runtime_error(std::format("{} decrypted {} values wrongly", Scheme::name, wrong));
-            }
+            require_correct(wrong);
             return ms;
         };
         const auto dec_ms = decryption_ms(sks);
 
-        std::string prepared_columns = "– | –";
-        if constexpr (requires { prepare(sks.front()); }){
-            std::vector<decltype(prepare(sks.front()))> prepared;
-            const auto prepare_ms = milliseconds_per_run(settings.runs, [&](const int i){
-                prepared.push_back(prepare(sks[i]));
-            });
-            prepared_columns = std::format("{:.2f} | {:.2f}", prepare_ms, decryption_ms(prepared));
+        std::vector<decltype(prepare(sks.front()))> prepared;
+        const auto prepare_ms = milliseconds_per_run(settings.runs, [&](const int i){
+            prepared.push_back(prepare(sks[i]));
+        });
+        const auto prepared_dec_ms = decryption_ms(prepared);
+
+        std::atomic<int> wrong = 0;
+        std::latch ready(settings.threads + 1);
+        std::chrono::steady_clock::time_point start;
+        {
+            std::vector<std::jthread> workers;
+            for (unsigned t = 0; t < settings.threads; ++t){
+                workers.emplace_back([&]{
+                    (void)decrypt(prepared[0], cts[0]);
+                    ready.arrive_and_wait();
+                    for (int i = 0; i < settings.runs; ++i){
+                        wrong += decrypt(prepared[i], cts[i]) != inputs[i].value;
+                    }
+                });
+            }
+            ready.arrive_and_wait();
+            start = std::chrono::steady_clock::now();
         }
+        const std::chrono::duration<double> threaded_seconds = std::chrono::steady_clock::now() - start;
+        require_correct(wrong);
+        const auto prepared_per_second = settings.threads * settings.runs / threaded_seconds.count();
 
         std::cout << std::format(
-            "| {} | {:.2f} | {:.2f} | {:.2f} | {:.2f} | {} |\n", Scheme::name, setup_ms, keygen_ms, enc_ms, dec_ms,
-            prepared_columns
+            "| {} | {:.2f} | {:.2f} | {:.2f} | {:.2f} | {:.2f} | {:.2f} | {:.0f} |\n", Scheme::name, setup_ms,
+            keygen_ms, enc_ms, dec_ms, prepare_ms, prepared_dec_ms, prepared_per_second
         );
     }
 
@@ -129,9 +155,9 @@ namespace{
     void print_header(const std::string_view curve, const std::string_view values, const Settings& settings){
         std::cout << std::format(
             "\n#### {}, n = {}, {} in [0, {}], mean of {} runs in ms\n\n"
-            "| Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec |\n"
-            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |\n",
-            curve, settings.length, values, settings.bound, settings.runs
+            "| Scheme | Setup | KeyGen | Enc | Dec | Prepare | Prepared Dec | Prepared Dec/s on {} threads |\n"
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n",
+            curve, settings.length, values, settings.bound, settings.runs, settings.threads
         );
     }
 
@@ -167,8 +193,9 @@ int main(const int argc, char** argv){
     std::vector<std::size_t> lengths;
     for (int i = 2; i < argc; ++i) lengths.push_back(std::stoul(argv[i]));
     if (lengths.empty()) lengths = {10, 100};
+    const auto threads = std::max(1u, std::thread::hardware_concurrency());
 
     for (const auto length : lengths){
-        benchmark_every_curve<rbp::BLS12_381, rbp::BN254, rbp::SS1536>({runs, length, 10000});
+        benchmark_every_curve<rbp::BLS12_381, rbp::BN254, rbp::SS1536>({runs, length, 10000, threads});
     }
 }

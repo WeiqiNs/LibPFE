@@ -28,7 +28,7 @@ using CurveTuple = std::tuple<${tag_list}>;
 #endif
 ")
 
-foreach (source IN ITEMS test_ipfe.cpp test_qfe.cpp)
+foreach (source IN ITEMS test_ipfe.cpp test_qfe.cpp test_concurrency.cpp)
     get_filename_component(name ${source} NAME_WE)
     add_executable(${name} ${source})
     target_include_directories(${name} PRIVATE ${PROJECT_BINARY_DIR}/generated/test)
