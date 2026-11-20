@@ -7,6 +7,10 @@ implement the same schemes against the same test cases.
 
 ## Commands
 
+Needs Linux, CMake 3.25+, a C++20 compiler, GMP and git (plus lcov for coverage). GoogleTest is used if installed and
+fetched otherwise. LibPFE sets no C++ standard itself: C++20 arrives through `RBP::RBP`. `PFE_BUILD_TESTS` defaults to
+ON only when LibPFE is the top-level project.
+
 CI runs these from the repo root. Locally, add `-DFETCHCONTENT_SOURCE_DIR_RBP=$PWD/../LibRBP` to each configure to
 build against a sibling LibRBP checkout (absolute; a relative path draws a CMake warning). Without it,
 `find_package(RBP)` is tried, then LibRBP `main` is fetched (`FetchContent_Declare(RBP ...)` in `CMakeLists.txt`).
@@ -70,7 +74,7 @@ the same construction and test cases.
 - Every bad shape throws `rbp::ShapeError`: `setup(0)` via `detail::require_dimension`, wrong-length IPFE inputs and
   QFE keys via LibRBP arithmetic, wrong-length QFE `enc` inputs via `QFE::detail::masked`, and a QFE ciphertext missing
   a G2 point via `QFE::detail::add_bilinear`. Pinned by `RejectsDimensionsBelowOne`, `RejectsVectorsOfTheWrongLength`,
-  `RejectsInputsOfTheWrongShape` and `RejectsCiphertextsMissingAPoint`.
+  `RejectsCiphertextsOfAnotherDimension`, `RejectsInputsOfTheWrongShape` and `RejectsCiphertextsMissingAPoint`.
 - Decryption only reads keys, prepared keys and the table, so threads share one of each;
   `test_concurrency.cpp` `ThreadsShareOneKeyAndTable` checks every result for `Sk` and `PreparedSk`. A race that
   leaves the results intact shows only under TSan, which CI does not run.
@@ -79,7 +83,7 @@ the same construction and test cases.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on pushes and PRs to `main`; both jobs fetch LibRBP `main` fresh, so a LibRBP change
-can turn LibPFE red. `coverage`: Debug build with `PFE_ENABLE_COVERAGE`, tests, 100% line coverage of `include/PFE/`
-via lcov, Codecov upload. `package`: Release build with the benchmark, tests, `pfe_bench 1 4`, install, then the demo
-built and run against the installed package.
+`.github/workflows/ci.yml` runs on pushes and PRs to `main` and on manual dispatch; both jobs fetch LibRBP `main`
+fresh, so a LibRBP change can turn LibPFE red. `coverage`: Debug build with `PFE_ENABLE_COVERAGE`, tests, 100% line
+coverage of `include/PFE/` via lcov, Codecov upload. `package`: Release build with the benchmark, tests,
+`pfe_bench 1 4`, install, then the demo built and run against the installed package.
