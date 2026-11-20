@@ -31,9 +31,16 @@ TYPED_TEST(QuadraticTest, DecryptsOneCiphertextUnderManyKeys){
     const auto decrypt = TypeParam::decryptor(keys, -100, 100);
     const auto ct = enc(keys.pk, IntVec{1, -2, 3}, IntVec{4, 5, -6});
 
-    EXPECT_EQ(decrypt(keygen(keys.msk, IntMat{{1, 0, 2}, {0, -1, 0}, {3, 1, 1}}), ct), 35);
-    EXPECT_EQ(decrypt(keygen(keys.msk, IntMat{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}), ct), -24);
-    EXPECT_EQ(decrypt(keygen(keys.msk, IntMat{{0, 0, 0}, {0, 0, 0}, {0, 0, 1}}), ct), -18);
+    const std::vector<std::pair<IntMat, std::int64_t>> cases{
+        {{{1, 0, 2}, {0, -1, 0}, {3, 1, 1}}, 35}, {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, -24},
+        {{{0, 0, 0}, {0, 0, 0}, {0, 0, 1}}, -18}
+    };
+
+    for (const auto& [function, expected] : cases){
+        const auto sk = keygen(keys.msk, function);
+        EXPECT_EQ(decrypt(sk, ct), expected);
+        EXPECT_EQ(decrypt(prepare(sk), ct), expected);
+    }
 }
 
 TYPED_TEST(QuadraticTest, HandlesVectorsOfLengthOne){
@@ -67,6 +74,7 @@ TYPED_TEST(QuadraticTest, RejectsInputsOfTheWrongShape){
 
     EXPECT_THROW((void)keygen(keys.msk, IntMat{{1, 2}, {3, 4}, {5, 6}}), rbp::ShapeError);
     EXPECT_THROW((void)keygen(keys.msk, IntMat{{1, 2}, {3, 4}}), rbp::ShapeError);
+    EXPECT_THROW((void)keygen(keys.msk, IntMat{{1, 2, 3}, {4, 5, 6}}), rbp::ShapeError);
     EXPECT_THROW((void)enc(keys.pk, IntVec{1, 2}, IntVec{1, 2, 3}), rbp::ShapeError);
     EXPECT_THROW((void)enc(keys.pk, IntVec{1, 2, 3}, IntVec{1, 2, 3, 4}), rbp::ShapeError);
 }
