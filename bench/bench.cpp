@@ -188,6 +188,9 @@ int main(const int argc, char** argv){
     std::vector<std::size_t> lengths;
     for (int i = 2; i < argc; ++i) lengths.push_back(std::stoul(argv[i]));
     if (lengths.empty()) lengths = {10, 100};
+    if (runs < 1 || std::ranges::find(lengths, 0) != lengths.end()){
+        throw std::invalid_argument("pfe_bench needs at least one run and lengths of at least 1");
+    }
     const auto threads = std::max(1u, std::thread::hardware_concurrency());
 
     for (const auto length : lengths){

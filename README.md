@@ -35,8 +35,8 @@ the quadratic schemes public-key, and all rely on bilinear pairings, hence pairi
 - **Eight schemes from the literature**, each one header under 150 lines that reads like the paper, with one shared
   test suite run against every scheme on three curves.
 - **Fast decryption.** A key can be prepared once so its pairing work is precomputed. With Acharya et al.'s scheme on
-  BLS12-381, a prepared key decrypts a length-10 inner product in about 2 ms, and 16 threads sharing one key reach
-  about 3,400 decryptions per second.
+  BLS12-381, a prepared key decrypts a length-10 inner product in about 2 ms, and 16 threads sharing the prepared
+  keys reach about 3,400 decryptions per second.
 - **Thread-safe by construction.** Keys and lookup tables never change after they are built, and a concurrency test
   decrypts from many threads with one shared key.
 - **Four implementations.** The same schemes, tests and benchmark inputs exist in

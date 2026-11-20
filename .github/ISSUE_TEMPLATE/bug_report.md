@@ -11,4 +11,4 @@ assignees: WeiqiNs
 A clear and concise description of what the bug is.
 
 **To Reproduce**
-Please your environment and paste your code here.
+Describe your environment and paste your code here.

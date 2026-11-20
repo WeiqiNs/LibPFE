@@ -3,7 +3,7 @@
 Header-only C++20 library of pairing-based functional encryption: inner-product (IPFE) and quadratic (QFE) schemes,
 one header per scheme in `include/PFE/`, each a set of free function templates over a LibRBP curve `C`. LibRBP
 (groups, pairings, `rbp::Matrix`/`rbp::Vector`, discrete log) is the only dependency. GoPFE, RustPFE and CudaPFE
-implement the same schemes against the same test cases. The owner's local checkout directory is `LibRIPFE`.
+implement the same schemes against the same test cases.
 
 ## Commands
 
@@ -44,7 +44,8 @@ keeps `PFE_ENABLE_COVERAGE=ON` cached. The `lcov` steps need lcov 2.x (for `--fi
 - `test/test_ipfe.cpp`, `test/test_qfe.cpp`, `test/test_concurrency.cpp` — GoogleTest typed suites over those lists.
 - `bench/bench.cpp` — benchmark of every operation, which throws if any decryption is wrong.
 - `demo/` — standalone consumer of the installed package; `cmake/PFEInstall.cmake` and `cmake/PFEConfig.cmake.in`
-  export `PFE::PFE` (an INTERFACE target linking `RBP::RBP`). `Dockerfile` builds, tests, installs and runs the demo.
+  export `PFE::PFE` (an INTERFACE target linking `RBP::RBP`). `Dockerfile` builds, tests and installs LibPFE and
+  builds the demo, which `docker run` runs.
 
 ## Scheme shape and adding a scheme
 
@@ -71,7 +72,8 @@ the same construction and test cases.
   a G2 point via `QFE::detail::add_bilinear`. Pinned by `RejectsDimensionsBelowOne`, `RejectsVectorsOfTheWrongLength`,
   `RejectsInputsOfTheWrongShape` and `RejectsCiphertextsMissingAPoint`.
 - Decryption only reads keys, prepared keys and the table, so threads share one of each;
-  `test_concurrency.cpp` `ThreadsShareOneKeyAndTable` pins it for `Sk` and `PreparedSk`.
+  `test_concurrency.cpp` `ThreadsShareOneKeyAndTable` checks every result for `Sk` and `PreparedSk`. A race that
+  leaves the results intact shows only under TSan, which CI does not run.
 - Tests cover every curve in LibRBP's `RBP_CURVES` (`test/CMakeLists.txt` generates `curves.hpp` with `CurveTuple`),
   but `bench.cpp` `main` and `demo/` name the curves explicitly and need all of them built.
 
