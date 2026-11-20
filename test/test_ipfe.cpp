@@ -53,3 +53,13 @@ TYPED_TEST(InnerProductTest, RejectsVectorsOfTheWrongLength){
     EXPECT_THROW((void)enc(msk, IntVec{1, 2, 3}), rbp::ShapeError);
     EXPECT_THROW((void)enc(msk, IntVec{1, 2, 3, 4, 5}), rbp::ShapeError);
 }
+
+TYPED_TEST(InnerProductTest, RejectsCiphertextsOfAnotherDimension){
+    const auto msk = TypeParam::setup(4);
+    const auto decrypt = TypeParam::decryptor(msk, -100, 100);
+    const auto sk = keygen(msk, IntVec{1, -2, 3, 4});
+    const auto ct = enc(TypeParam::setup(3), IntVec{1, 2, 3});
+
+    EXPECT_THROW((void)decrypt(sk, ct), rbp::ShapeError);
+    EXPECT_THROW((void)decrypt(prepare(sk), ct), rbp::ShapeError);
+}
