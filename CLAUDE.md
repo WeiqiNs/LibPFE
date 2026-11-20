@@ -3,7 +3,7 @@
 Header-only C++20 library of pairing-based functional encryption: inner-product (IPFE) and quadratic (QFE) schemes,
 one header per scheme in `include/PFE/`, each a set of free function templates over a LibRBP curve `C`. LibRBP
 (groups, pairings, `rbp::Matrix`/`rbp::Vector`, discrete log) is the only dependency. GoPFE, RustPFE and CudaPFE
-implement the same schemes against the same test cases.
+implement the same schemes; GoPFE and RustPFE share its test cases, CudaPFE batches the schemes on CPU or GPU.
 
 ## Commands
 
